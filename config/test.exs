@@ -29,3 +29,9 @@ config :openaperture_manager_api,
 config :openaperture_overseer, 
 	exchange_id: "1",
 	broker_id: "1"
+
+config :openaperture_overseer_api,
+	module_type: :test,
+	autostart: false,	
+	exchange_id: "1",
+	broker_id: "1"

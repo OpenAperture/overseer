@@ -67,10 +67,10 @@ defmodule OpenAperture.Overseer.Dispatcher do
   @spec register_queues() :: :ok | {:error, String.t()}
   def register_queues do
     Logger.debug("Registering Overseer queues...")
-    workflow_orchestration_queue = QueueBuilder.build(ManagerApi.get_api, "overseer", Configuration.get_current_exchange_id)
+    overseer_queue = QueueBuilder.build(ManagerApi.get_api, "overseer", Configuration.get_current_exchange_id)
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
-    subscribe(options, workflow_orchestration_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) -> 
+    subscribe(options, overseer_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) -> 
       MessageManager.track(async_info)
       process_request(payload, delivery_tag) 
     end)

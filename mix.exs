@@ -14,7 +14,7 @@ defmodule OpenAperture.Overseer.Mixfile do
   def application do
     [
       mod: { OpenAperture.Overseer, [] },
-      applications: [:logger, :openaperture_messaging, :openaperture_manager_api]
+      applications: [:logger, :openaperture_messaging, :openaperture_manager_api, :openaperture_overseer_api]
     ]
   end
 
@@ -35,7 +35,9 @@ defmodule OpenAperture.Overseer.Mixfile do
         ref: "671d48c1eb385747b57c41edda2065c9bb8171ba", override: true},
       {:openaperture_manager_api, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/OpenAperture/manager_api.git", 
         ref: "7698785f22fb5084671882e4bf14a8824804d53a", override: true},
-
+      {:openaperture_overseer_api, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/OpenAperture/overseer_api.git", 
+        ref: "3aeab7db575bde674ab364fefdf69721c67c5d46", override: true},
+        
       #test dependencies
       {:exvcr, github: "parroty/exvcr", override: true},
       {:meck, "0.8.2", override: true}      

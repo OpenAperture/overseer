@@ -8,12 +8,9 @@ defmodule OpenAperture.Overseer.DispatcherTests do
   alias OpenAperture.Messaging.AMQP.ConnectionPools
   alias OpenAperture.Messaging.AMQP.SubscriptionHandler
   alias OpenAperture.Messaging.ConnectionOptionsResolver
-  alias OpenAperture.Messaging.AMQP.Exchange, as: AMQPExchange
   alias OpenAperture.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
   alias OpenAperture.Messaging.AMQP.QueueBuilder
 
-  alias OpenAperture.Overseer.Configuration
-  alias OpenAperture.Overseer.WorkflowFSM
   alias OpenAperture.Overseer.MessageManager
   
   # ===================================
