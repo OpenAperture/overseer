@@ -39,7 +39,7 @@ defmodule OpenAperture.Overseer.Mixfile do
       {:openaperture_manager_api, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/OpenAperture/manager_api.git", 
         ref: "7698785f22fb5084671882e4bf14a8824804d53a", override: true},
       {:openaperture_overseer_api, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/OpenAperture/overseer_api.git", 
-        ref: "3aeab7db575bde674ab364fefdf69721c67c5d46", override: true},
+        ref: "7b6901b9215f292144bc09d8a9ac0cc28891eef9", override: true},
         
       #test dependencies
       {:exvcr, github: "parroty/exvcr", override: true},
