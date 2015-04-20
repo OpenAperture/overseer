@@ -4,6 +4,7 @@ defmodule OpenAperture.Overseer.Modules.ListenerTests do
 
   alias OpenAperture.Overseer.Modules.Listener
   alias OpenAperture.ManagerApi.MessagingExchangeModule
+  alias OpenAperture.ManagerApi.Response
   
   alias OpenAperture.Messaging.ConnectionOptionsResolver
   alias OpenAperture.Messaging.AMQP.ConnectionPool
@@ -53,6 +54,7 @@ defmodule OpenAperture.Overseer.Modules.ListenerTests do
   test "process_event - status event failed" do
     :meck.new(MessagingExchangeModule, [:passthrough])
     :meck.expect(MessagingExchangeModule, :create_module!, fn _, _ -> false end)
+    :meck.expect(MessagingExchangeModule, :create_module, fn _, _ -> %Response{status: 400, body: "{\"errors\": []}"} end)
 
     module = %{
       hostname: System.get_env("HOSTNAME"),

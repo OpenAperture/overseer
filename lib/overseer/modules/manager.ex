@@ -50,6 +50,8 @@ defmodule OpenAperture.Overseer.Modules.Manager do
   def handle_cast({:set_modules, modules}, state) do
   	state = start_listeners(state, modules)
   	state = stop_listeners(state, find_deleted_modules(state, modules))
+
+    inactivate_listeners(state)
   	{:noreply, state}
   end
 
