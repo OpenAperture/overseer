@@ -24,7 +24,7 @@ defmodule OpenAperture.Overseer.Modules.Retriever do
   """
   @spec start_link() :: {:ok, pid} | {:error, String.t()}	
   def start_link() do
-    case GenServer.start_link(__MODULE__, [], []) do
+    case GenServer.start_link(__MODULE__, [], name: __MODULE__) do
       {:ok, retriever} -> 
 				if Application.get_env(:autostart, :retrieve_modules, false) do
       		GenServer.cast(retriever, {:retrieve_module_list})
