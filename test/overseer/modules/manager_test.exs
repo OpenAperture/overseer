@@ -17,7 +17,7 @@ defmodule OpenAperture.Overseer.Modules.ManagerTests do
     end)
 
     state = %{
-      modules: []
+      modules: %{}
     }
     Manager.inactivate_listeners(state)
   after
@@ -35,7 +35,7 @@ defmodule OpenAperture.Overseer.Modules.ManagerTests do
     end)
 
     state = %{
-      modules: [%{}]
+      modules: %{"123" => %{}}
     }
     Manager.inactivate_listeners(state)
   after
@@ -61,7 +61,7 @@ defmodule OpenAperture.Overseer.Modules.ManagerTests do
     end)
 
     state = %{
-      modules: [%{}]
+      modules: %{"123" => %{}}
     }
     
     Manager.inactivate_listeners(state)
@@ -88,7 +88,7 @@ defmodule OpenAperture.Overseer.Modules.ManagerTests do
     end)
 
     state = %{
-      modules: [%{}]
+      modules: %{"123" => %{}}
     }
     
     Manager.inactivate_listeners(state)
