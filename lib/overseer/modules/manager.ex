@@ -201,42 +201,45 @@ defmodule OpenAperture.Overseer.Modules.Manager do
     if state[:modules] == nil || Map.size(state[:modules]) == 0 do
       Logger.debug("[Overseer][Manager] There are no modules to review for inactivation")
     else
-    end
-		Enum.reduce Map.values(state[:modules]), [], fn(listener, _inactive_modules) ->
-			module = Listener.get_module(listener)
+      Logger.debug("[Overseer][Manager] Reviewing modules for inactivation")
+      Enum.reduce Map.values(state[:modules]), [], fn(listener, _inactive_modules) ->
+        module = Listener.get_module(listener)
 
-	    try do
-	      {:ok, updated_at} = DateFormat.parse(module["updated_at"], "{RFC1123}")
-	      updated_at_secs = Date.convert(updated_at, :secs) #since epoch
-	      
-	    	now = Date.now #utc
-	    	now_secs = Date.convert(now, :secs) #since epoch      
+        try do
+          Logger.debug("[Overseer][Manager] Reviewing module #{module["hostname"]}...")
 
-				diff_seconds = now_secs - updated_at_secs
-				cond do 
-					#if the module hasn't been updated in 20 minutes, delete it
-					#don't worry about stopping the listener and updating state, that will happen next refresh
-					diff_seconds > 1200 ->
-						Logger.debug("[Overseer][Manager] Module #{module["hostname"]} has not been updated in at least 20 minutes, delete it")
-						case MessagingExchangeModule.delete_module!(Application.get_env(:openaperture_overseer_api, :exchange_id), module["hostname"]) do
-					    true -> Logger.debug("[Overseer][Manager] Successfully deleted module #{module["hostname"]}")
-					    false -> Logger.error("[Overseer][Manager] Failed to deleted module #{module["hostname"]}!")
-					  end
-					#if the module hasn't been updated in 10 minutes, inactive it (and update the state)
-					diff_seconds > 600 ->
-						Logger.debug("[Overseer][Manager] Module #{module["hostname"]} has not been updated in at least 10 minutes, inactive it")
-						module = Map.put(module, "state", :inactive)
-						case MessagingExchangeModule.create_module!(Application.get_env(:openaperture_overseer_api, :exchange_id), module) do
-					    true -> 
-					      Logger.debug("[Overseer][Manager] Successfully inactivated module #{module["hostname"]}")
-					      Listener.set_module(listener, module)
-					    false -> Logger.error("[Overseer][Manager] Failed to inactivated module #{module["hostname"]}!")
-					  end
-					true -> Logger.debug("[Overseer][Manager] Module #{module["hostname"]} is still active")
-				end
-	    rescue e ->
-	      Logger.error("[Overseer][Manager] An error occurred parsing updated_at time for module #{module["hostname"]}:  #{inspect e}")
-	    end			
-		end  	
+          {:ok, updated_at} = DateFormat.parse(module["updated_at"], "{RFC1123}")
+          updated_at_secs = Date.convert(updated_at, :secs) #since epoch
+          
+          now = Date.now #utc
+          now_secs = Date.convert(now, :secs) #since epoch      
+
+          diff_seconds = now_secs - updated_at_secs
+          cond do 
+            #if the module hasn't been updated in 20 minutes, delete it
+            #don't worry about stopping the listener and updating state, that will happen next refresh
+            diff_seconds > 1200 ->
+              Logger.debug("[Overseer][Manager] Module #{module["hostname"]} has not been updated in at least 20 minutes, delete it")
+              case MessagingExchangeModule.delete_module!(Application.get_env(:openaperture_overseer_api, :exchange_id), module["hostname"]) do
+                true -> Logger.debug("[Overseer][Manager] Successfully deleted module #{module["hostname"]}")
+                false -> Logger.error("[Overseer][Manager] Failed to deleted module #{module["hostname"]}!")
+              end
+            #if the module hasn't been updated in 10 minutes, inactive it (and update the state)
+            diff_seconds > 600 ->
+              Logger.debug("[Overseer][Manager] Module #{module["hostname"]} has not been updated in at least 10 minutes, inactive it")
+              module = Map.put(module, "state", :inactive)
+              case MessagingExchangeModule.create_module!(Application.get_env(:openaperture_overseer_api, :exchange_id), module) do
+                true -> 
+                  Logger.debug("[Overseer][Manager] Successfully inactivated module #{module["hostname"]}")
+                  Listener.set_module(listener, module)
+                false -> Logger.error("[Overseer][Manager] Failed to inactivated module #{module["hostname"]}!")
+              end
+            true -> Logger.debug("[Overseer][Manager] Module #{module["hostname"]} is still active")
+          end
+        rescue e ->
+          Logger.error("[Overseer][Manager] An error occurred parsing updated_at time for module #{module["hostname"]}:  #{inspect e}")
+        end     
+      end 
+    end 	
   end
 end
