@@ -65,7 +65,7 @@ defmodule OpenAperture.Overseer.Modules.Manager do
   """
   @spec find_deleted_modules(Map, List) :: Map
   def find_deleted_modules(state, modules) do
-  	if state[:modules] == nil || length(Map.keys(state[:modules])) == 0 do
+  	if state[:modules] == nil || Map.size(state[:modules]) == 0 do
   		[]
   	else
   		new_modules = if modules == nil || length(modules) == 0 do
