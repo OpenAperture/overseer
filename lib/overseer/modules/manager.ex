@@ -48,10 +48,11 @@ defmodule OpenAperture.Overseer.Modules.Manager do
   """
   @spec handle_cast(pid, term) :: {:noreply, Map}
   def handle_cast({:set_modules, modules}, state) do
+    inactivate_listeners(state)
+
   	state = start_listeners(state, modules)
   	state = stop_listeners(state, find_deleted_modules(state, modules))
 
-    inactivate_listeners(state)
   	{:noreply, state}
   end
 
@@ -201,12 +202,13 @@ defmodule OpenAperture.Overseer.Modules.Manager do
     if state[:modules] == nil || Map.size(state[:modules]) == 0 do
       Logger.debug("[Overseer][Manager] There are no modules to review for inactivation")
     else
-      Logger.debug("[Overseer][Manager] Reviewing modules for inactivation")
-      Enum.reduce Map.values(state[:modules]), [], fn(listener, _inactive_modules) ->
+      listeners = Map.values(state[:modules])
+      Logger.debug("[Overseer][Manager] Reviewing #{length(listeners)} modules for inactivation...")
+      Enum.reduce listeners, [], fn(listener, _inactive_modules) ->
         module = Listener.get_module(listener)
 
         try do
-          Logger.debug("[Overseer][Manager] Reviewing module #{module["hostname"]}...")
+          Logger.debug("[Overseer][Manager] Reviewing module #{module["hostname"]} for activation status...")
 
           {:ok, updated_at} = DateFormat.parse(module["updated_at"], "{RFC1123}")
           updated_at_secs = Date.convert(updated_at, :secs) #since epoch
