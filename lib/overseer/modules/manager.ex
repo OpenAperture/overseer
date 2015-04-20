@@ -21,7 +21,7 @@ defmodule OpenAperture.Overseer.Modules.Manager do
   """
   @spec start_link() :: {:ok, pid} | {:error, String.t()}	
   def start_link() do
-    GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
+    GenServer.start_link(__MODULE__, %{modules: %{}}, name: __MODULE__)
   end
 
   @doc """
