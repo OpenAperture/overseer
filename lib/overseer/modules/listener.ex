@@ -33,7 +33,7 @@ defmodule OpenAperture.Overseer.Modules.Listener do
   @spec start_link(Map) :: {:ok, pid} | {:error, String.t()}   
   def start_link(module) do
     Logger.debug("Creating a listener for module #{module["hostname"]}...")
-    GenServer.start_link(__MODULE__, %{module: module}, name: module["hostname"])
+    GenServer.start_link(__MODULE__, %{module: module}, [])
   end
 
   @doc """
