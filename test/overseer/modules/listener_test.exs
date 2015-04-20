@@ -160,7 +160,7 @@ defmodule OpenAperture.Overseer.Modules.ListenerTests do
 
     state = %{module: module}
 
-    returned_state = Listener.handle_cast({:start_listening}, state)
+    {:noreply, returned_state} = Listener.handle_cast({:start_listening}, state)
     assert returned_state != nil
     assert returned_state[:subscription_handler] != nil
   after
@@ -191,7 +191,7 @@ defmodule OpenAperture.Overseer.Modules.ListenerTests do
 
     state = %{module: module}
 
-    returned_state = Listener.handle_cast({:start_listening}, state)
+    {:noreply, returned_state} = Listener.handle_cast({:start_listening}, state)
     assert returned_state != nil
     assert returned_state[:subscription_handler] == nil
   after
