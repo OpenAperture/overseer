@@ -118,8 +118,10 @@ defmodule OpenAperture.Overseer.Modules.Manager do
   		true ->
   			case Listener.start_link(module) do
 	  			{:ok, listener} ->
+            Logger.debug("Successfully created listener #{inspect listener} for module #{module["hostname"]}...")
 	  				Listener.start_listening(listener)
-	  				Map.put(state, :modules, Map.put(state[:modules], module["hostname"], listener))
+            modules_state = Map.put(state[:modules], module["hostname"], listener)
+	  				Map.put(state, :modules, modules_state)
 	  			{:error, reason} -> 
 	  				Logger.error("Failed to start listener for module #{module["hostname"]}:  #{inspect reason}")
 	  				state
