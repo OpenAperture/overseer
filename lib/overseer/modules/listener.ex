@@ -170,8 +170,8 @@ defmodule OpenAperture.Overseer.Modules.Listener do
   def process_event(%{event_type: :status} = payload, _delivery_tag, module) do
     Logger.debug("[Overseer][Listener][#{module["hostname"]}] Received a status event from module")
     case MessagingExchangeModule.create_module!(Configuration.get_current_exchange_id, payload) do
-      true -> Logger.debug("[Overseer][Listener][#{module["hostname"]}] Successfully updated module")
-      false -> Logger.error("[Overseer][Listener][#{module["hostname"]}] Failed to update module")
+      nil -> Logger.error("[Overseer][Listener][#{module["hostname"]}] Failed to update module")
+      _ -> Logger.debug("[Overseer][Listener][#{module["hostname"]}] Successfully updated module")
     end
   end
 
