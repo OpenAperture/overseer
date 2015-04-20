@@ -51,6 +51,7 @@ defmodule OpenAperture.Overseer.Modules.Retriever do
     end
     Logger.debug("[Overseer][Retriever] Sleeping for #{sleep_seconds} seconds before retrieving system modules...")
     :timer.sleep(sleep_seconds * 1000)
+    GenServer.cast(__MODULE__, {:retrieve_module_list})
     
     {:noreply, modules}
   end

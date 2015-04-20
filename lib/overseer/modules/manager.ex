@@ -207,7 +207,6 @@ defmodule OpenAperture.Overseer.Modules.Manager do
       Logger.debug("[Overseer][Manager] Reviewing #{length(listeners)} modules for inactivation...")
       Enum.reduce listeners, [], fn(listener, _inactive_modules) ->
         module = Listener.get_module(listener)
-
         try do
           Logger.debug("[Overseer][Manager] Reviewing module #{module["hostname"]} for activation status...")
 
