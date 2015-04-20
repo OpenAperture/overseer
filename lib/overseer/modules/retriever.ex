@@ -31,7 +31,7 @@ defmodule OpenAperture.Overseer.Modules.Retriever do
     		end
 
        	{:ok, retriever}
-      {:error, reason} -> {:error, "Failed to create Modules.Manager: #{inspect reason}"}
+      {:error, reason} -> {:error, "[Overseer][Retriever] Failed to create Modules.Manager: #{inspect reason}"}
     end
   end
 
@@ -49,7 +49,7 @@ defmodule OpenAperture.Overseer.Modules.Retriever do
     if sleep_seconds < 60 do
       sleep_seconds = 60
     end
-    Logger.debug("Sleeping for #{sleep_seconds} seconds before retrieving system modules...")
+    Logger.debug("[Overseer][Retriever] Sleeping for #{sleep_seconds} seconds before retrieving system modules...")
     :timer.sleep(sleep_seconds * 1000)
     
     {:noreply, modules}
@@ -57,11 +57,11 @@ defmodule OpenAperture.Overseer.Modules.Retriever do
 
   def refresh_modules do
     exchange_id = Configuration.get_current_exchange_id
-    Logger.debug("Retrieving system modules for exchange #{exchange_id}...")
+    Logger.debug("[Overseer][Retriever] Retrieving system modules for exchange #{exchange_id}...")
 
     modules = case MessagingExchangeModule.list!(exchange_id) do
       nil -> 
-        Logger.error("Unable to load system modules from exchange #{exchange_id}!")
+        Logger.error("[Overseer][Retriever] Unable to load system modules from exchange #{exchange_id}!")
         nil
       modules -> modules
     end

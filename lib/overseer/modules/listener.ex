@@ -32,7 +32,6 @@ defmodule OpenAperture.Overseer.Modules.Listener do
   """
   @spec start_link(Map) :: {:ok, pid} | {:error, String.t()}   
   def start_link(module) do
-    Logger.debug("Creating a listener for module #{module["hostname"]}...")
     GenServer.start_link(__MODULE__, %{module: module}, [])
   end
 
@@ -102,7 +101,7 @@ defmodule OpenAperture.Overseer.Modules.Listener do
   """
   @spec handle_cast({:start_listening}, Map) :: {:noreply, Map}
   def handle_cast({:start_listening}, state) do
-    Logger.debug("Starting event listener for module #{state[:module]["hostname"]}...")
+    Logger.debug("[Overseer][Listener][#{state[:module]["hostname"]}] Starting event listener...")
     event_queue = QueueBuilder.build(ManagerApi.get_api, "module_#{state[:module]["hostname"]}", Configuration.get_current_exchange_id, [durable: false])
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
@@ -113,11 +112,11 @@ defmodule OpenAperture.Overseer.Modules.Listener do
     end) do
       {:ok, subscription_handler} -> subscription_handler
       {:error, reason} -> 
-        Logger.error("Failed to start event listener for module #{state[:module]["hostname"]}:  #{inspect reason}")
+        Logger.error("[Overseer][Listener][#{state[:module]["hostname"]}] Failed to start event listener:  #{inspect reason}")
         nil
     end
 
-    Map.put(state, :subscription_handler, subscription_handler)
+    {:noreply, Map.put(state, :subscription_handler, subscription_handler)}
   end
 
   @doc """
@@ -128,7 +127,7 @@ defmodule OpenAperture.Overseer.Modules.Listener do
   """
   @spec handle_cast({:stop_listening}, Map) :: {:noreply, List}
   def handle_cast({:stop_listening}, state) do
-    Logger.debug("Stopping event listener for module #{state[:module]["hostname"]}...")
+    Logger.debug("[Overseer][Listener][#{state[:module]["hostname"]}] Stopping event listener")
     
     unless state[:subscription_handler] == nil do
       options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
@@ -169,10 +168,10 @@ defmodule OpenAperture.Overseer.Modules.Listener do
   """
   @spec process_event(Map, String.t(), Map) :: term
   def process_event(%{event_type: :status} = payload, delivery_tag, module) do
-    Logger.debug("Received a status event from module #{module["hostname"]}")
+    Logger.debug("[Overseer][Listener][#{state[:module]["hostname"]}] Received a status event from module")
     case MessagingExchangeModule.create_module!(Configuration.get_current_exchange_id, payload) do
-      true -> Logger.debug("Successfully updated module #{module["hostname"]}")
-      false -> Logger.error("Failed to update module #{module["hostname"]}")
+      true -> Logger.debug("[Overseer][Listener][#{state[:module]["hostname"]}] Successfully updated module")
+      false -> Logger.error("[Overseer][Listener][#{state[:module]["hostname"]}] Failed to update module")
     end
   end
 
@@ -187,6 +186,6 @@ defmodule OpenAperture.Overseer.Modules.Listener do
   """
   @spec process_event(Map, String.t(), Map) :: term
   def process_event(%{event_type: type} = payload, delivery_tag, module) do
-    Logger.debug("Received an unknown event from module #{module["hostname"]}:  #{inspect type}")
+    Logger.debug("[Overseer][Listener][#{state[:module]["hostname"]}] Received an unknown event:  #{inspect type}")
   end
 end
