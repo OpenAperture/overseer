@@ -1,5 +1,7 @@
 # OpenAperture.Overseer
 
+[![Build Status](https://semaphoreci.com/api/v1/projects/c3d35030-ce62-4a5b-a757-65074469246f/403162/badge.svg)](https://semaphoreci.com/perceptive/overseer)
+
 The Overseer module provides a standardized mechanism to manage and monitor OpenAperture system modules running in various MessagingExchanges.
 
 ## Module Responsibilities
