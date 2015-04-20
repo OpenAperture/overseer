@@ -29,8 +29,8 @@ defmodule OpenAperture.Overseer.Mixfile do
   # Type `mix help deps` for more examples and options
   defp deps do
     [
-      {:ex_doc, github: "elixir-lang/ex_doc"},
-      {:markdown, github: "devinus/markdown"},
+      {:ex_doc, github: "elixir-lang/ex_doc", only: [:test]},
+      {:markdown, github: "devinus/markdown", only: [:test]},
 
       {:poison, "~> 1.3.1"},
       {:timex, "~> 0.13.3"},
