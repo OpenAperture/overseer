@@ -206,8 +206,9 @@ defmodule OpenAperture.Overseer.Modules.Manager do
       listeners = Map.values(state[:modules])
       Logger.debug("[Overseer][Manager] Reviewing #{length(listeners)} modules for inactivation...")
       Enum.reduce listeners, [], fn(listener, _inactive_modules) ->
-        module = Listener.get_module(listener)
         try do
+          Logger.debug("[Overseer][Manager] Loading module...")
+          module = Listener.get_module(listener)
           Logger.debug("[Overseer][Manager] Reviewing module #{module["hostname"]} for activation status...")
 
           {:ok, updated_at} = DateFormat.parse(module["updated_at"], "{RFC1123}")
@@ -239,7 +240,7 @@ defmodule OpenAperture.Overseer.Modules.Manager do
             true -> Logger.debug("[Overseer][Manager] Module #{module["hostname"]} is still active")
           end
         rescue e ->
-          Logger.error("[Overseer][Manager] An error occurred parsing updated_at time for module #{module["hostname"]}:  #{inspect e}")
+          Logger.error("[Overseer][Manager] An error occurred parsing updated_at time for a module:  #{inspect e}")
         end     
       end 
     end 	
