@@ -21,7 +21,7 @@ defmodule OpenAperture.Overseer.Modules.Manager do
   """
   @spec start_link() :: {:ok, pid} | {:error, String.t()}	
   def start_link() do
-    GenServer.start_link(__MODULE__, %{modules: %{}}, name: __MODULE__)
+    GenServer.start_link(__MODULE__, %{modules: %{}, listeners: %{}}, name: __MODULE__)
   end
 
   @doc """
@@ -69,7 +69,7 @@ defmodule OpenAperture.Overseer.Modules.Manager do
   """
   @spec find_deleted_modules(Map, List) :: Map
   def find_deleted_modules(state, modules) do
-  	if state[:modules] == nil || Map.size(state[:modules]) == 0 do
+  	if state[:listeners] == nil || Map.size(state[:listeners]) == 0 do
   		[]
   	else
   		new_modules = if modules == nil || length(modules) == 0 do
@@ -80,11 +80,11 @@ defmodule OpenAperture.Overseer.Modules.Manager do
   			end
   		end
 
-  		Enum.reduce Map.keys(state[:modules]), [], fn(hostname, invalid_modules) ->
+  		Enum.reduce Map.keys(state[:listeners]), [], fn(hostname, invalid_modules) ->
   			if Map.has_key?(new_modules, hostname) do
   				invalid_modules
   			else
-  				invalid_modules ++ [Listener.get_module(state[:modules][hostname])]
+  				invalid_modules ++ [Listener.get_module(state[:listeners][hostname])]
   			end
   		end
   	end
@@ -118,14 +118,17 @@ defmodule OpenAperture.Overseer.Modules.Manager do
   @spec start_listeners(Map, List) :: Map
   def start_listeners(state, [module|remaining_modules]) do
   	state = cond do
-  		state[:modules][module["hostname"]] != nil -> state
+  		state[:listeners][module["hostname"]] != nil -> state
   		true ->
   			case Listener.start_link(module) do
 	  			{:ok, listener} ->
             Logger.debug("[Overseer][Manager] Successfully created listener #{inspect listener} for module #{module["hostname"]}...")
 	  				Listener.start_listening(listener)
-            modules_state = Map.put(state[:modules], module["hostname"], listener)
-	  				Map.put(state, :modules, modules_state)
+            listeners_state = Map.put(state[:listeners], module["hostname"], listener)
+	  				state = Map.put(state, :listeners, listeners_state)
+
+            modules_state = Map.put(state[:modules], module["hostname"], module)
+            Map.put(state, :modules, modules_state)            
 	  			{:error, reason} -> 
 	  				Logger.error("[Overseer][Manager] Failed to start listener for module #{module["hostname"]}:  #{inspect reason}")
 	  				state
@@ -176,11 +179,14 @@ defmodule OpenAperture.Overseer.Modules.Manager do
   """
   @spec stop_listeners(Map, List) :: Map
   def stop_listeners(state, [module|remaining_modules]) do
-  	state = if state[:modules][module["hostname"]] != nil do
-  		Listener.stop_listening(state[:modules][module["hostname"]])
+  	state = if state[:listeners][module["hostname"]] != nil do
+  		Listener.stop_listening(state[:listeners][module["hostname"]])
 
-	  	modules_state = Map.delete(state[:modules], module["hostname"])
-	  	Map.put(state, :modules, modules_state)
+	  	listeners_state = Map.delete(state[:listeners], module["hostname"])
+	  	state = Map.put(state, :listeners, listeners_state)
+
+      modules_state = Map.delete(state[:modules], module["hostname"])
+      Map.put(state, :modules, modules_state)      
 	  else
 			state
 		end
@@ -200,44 +206,49 @@ defmodule OpenAperture.Overseer.Modules.Manager do
   """
   @spec inactivate_listeners(Map) :: term
   def inactivate_listeners(state) do
-    if state[:modules] == nil || Map.size(state[:modules]) == 0 do
+    if state[:listeners] == nil || Map.size(state[:listeners]) == 0 do
       Logger.debug("[Overseer][Manager] There are no modules to review for inactivation")
     else
-      listeners = Map.values(state[:modules])
-      Logger.debug("[Overseer][Manager] Reviewing #{length(listeners)} modules for inactivation...")
-      Enum.reduce listeners, [], fn(listener, _inactive_modules) ->
+      listener_keys = Map.keys(state[:listeners])
+      Logger.debug("[Overseer][Manager] Reviewing #{length(listener_keys)} modules for inactivation...")
+      Enum.reduce listener_keys, [], fn(listener_key, _inactive_modules) ->
         try do
           Logger.debug("[Overseer][Manager] Loading module...")
-          module = Listener.get_module(listener)
+          module = state[:modules][listener_key]
+          listener = state[:listeners][listener_key]
           Logger.debug("[Overseer][Manager] Reviewing module #{module["hostname"]} for activation status...")
 
-          {:ok, updated_at} = DateFormat.parse(module["updated_at"], "{RFC1123}")
-          updated_at_secs = Date.convert(updated_at, :secs) #since epoch
-          
-          now = Date.now #utc
-          now_secs = Date.convert(now, :secs) #since epoch      
+          if module["updated_at"] == nil || String.length(module["updated_at"]) == 0 do
+            Logger.error("[Overseer][Manager] Unable to review module #{module["hostname"]} because it does not have a valid updated_at time!")
+          else
+            {:ok, updated_at} = DateFormat.parse(module["updated_at"], "{RFC1123}")
+            updated_at_secs = Date.convert(updated_at, :secs) #since epoch
+            
+            now = Date.now #utc
+            now_secs = Date.convert(now, :secs) #since epoch      
 
-          diff_seconds = now_secs - updated_at_secs
-          cond do 
-            #if the module hasn't been updated in 20 minutes, delete it
-            #don't worry about stopping the listener and updating state, that will happen next refresh
-            diff_seconds > 1200 ->
-              Logger.debug("[Overseer][Manager] Module #{module["hostname"]} has not been updated in at least 20 minutes, delete it")
-              case MessagingExchangeModule.delete_module!(Application.get_env(:openaperture_overseer_api, :exchange_id), module["hostname"]) do
-                true -> Logger.debug("[Overseer][Manager] Successfully deleted module #{module["hostname"]}")
-                false -> Logger.error("[Overseer][Manager] Failed to deleted module #{module["hostname"]}!")
-              end
-            #if the module hasn't been updated in 10 minutes, inactive it (and update the state)
-            diff_seconds > 600 ->
-              Logger.debug("[Overseer][Manager] Module #{module["hostname"]} has not been updated in at least 10 minutes, inactive it")
-              module = Map.put(module, "state", :inactive)
-              case MessagingExchangeModule.create_module!(Application.get_env(:openaperture_overseer_api, :exchange_id), module) do
-                true -> 
-                  Logger.debug("[Overseer][Manager] Successfully inactivated module #{module["hostname"]}")
-                  Listener.set_module(listener, module)
-                false -> Logger.error("[Overseer][Manager] Failed to inactivated module #{module["hostname"]}!")
-              end
-            true -> Logger.debug("[Overseer][Manager] Module #{module["hostname"]} is still active")
+            diff_seconds = now_secs - updated_at_secs
+            cond do 
+              #if the module hasn't been updated in 20 minutes, delete it
+              #don't worry about stopping the listener and updating state, that will happen next refresh
+              diff_seconds > 1200 ->
+                Logger.debug("[Overseer][Manager] Module #{module["hostname"]} has not been updated in at least 20 minutes, delete it")
+                case MessagingExchangeModule.delete_module!(Application.get_env(:openaperture_overseer_api, :exchange_id), module["hostname"]) do
+                  true -> Logger.debug("[Overseer][Manager] Successfully deleted module #{module["hostname"]}")
+                  false -> Logger.error("[Overseer][Manager] Failed to deleted module #{module["hostname"]}!")
+                end
+              #if the module hasn't been updated in 10 minutes, inactive it (and update the state)
+              diff_seconds > 600 ->
+                Logger.debug("[Overseer][Manager] Module #{module["hostname"]} has not been updated in at least 10 minutes, inactive it")
+                module = Map.put(module, "state", :inactive)
+                case MessagingExchangeModule.create_module!(Application.get_env(:openaperture_overseer_api, :exchange_id), module) do
+                  true -> 
+                    Logger.debug("[Overseer][Manager] Successfully inactivated module #{module["hostname"]}")
+                    Listener.set_module(listener, module)
+                  false -> Logger.error("[Overseer][Manager] Failed to inactivated module #{module["hostname"]}!")
+                end
+              true -> Logger.debug("[Overseer][Manager] Module #{module["hostname"]} is still active")
+            end
           end
         rescue e ->
           Logger.error("[Overseer][Manager] An error occurred parsing updated_at time for a module:  #{inspect e}")

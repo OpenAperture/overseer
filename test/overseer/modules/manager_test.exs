@@ -17,7 +17,8 @@ defmodule OpenAperture.Overseer.Modules.ManagerTests do
     end)
 
     state = %{
-      modules: %{}
+      listeners: %{},
+      modules: %{},
     }
     Manager.inactivate_listeners(state)
   after
@@ -28,18 +29,11 @@ defmodule OpenAperture.Overseer.Modules.ManagerTests do
     now = Date.now #utc
     now_string = DateFormat.format!(now, "{RFC1123}")
 
-    :meck.new(Listener, [:passthrough])
-    :meck.expect(Listener, :get_module, fn _ -> %{
-      "updated_at" => now_string
-    } 
-    end)
-
     state = %{
-      modules: %{"123" => %{}}
+      listeners: %{"123" => %{}},
+      modules: %{"123" => %{"updated_at" => now_string}},
     }
     Manager.inactivate_listeners(state)
-  after
-    :meck.unload(Listener)
   end
 
   test "inactivate_listeners inactive module" do
@@ -55,13 +49,10 @@ defmodule OpenAperture.Overseer.Modules.ManagerTests do
 
     :meck.new(Listener, [:passthrough])
     :meck.expect(Listener, :set_module, fn _,_ -> :ok end)
-    :meck.expect(Listener, :get_module, fn _ -> %{
-      "updated_at" => lookback_string
-    } 
-    end)
 
     state = %{
-      modules: %{"123" => %{}}
+      listeners: %{"123" => %{"updated_at" => lookback_string}},
+      modules: %{"123" => %{"updated_at" => lookback_string}},
     }
     
     Manager.inactivate_listeners(state)
@@ -81,19 +72,13 @@ defmodule OpenAperture.Overseer.Modules.ManagerTests do
     lookback = Date.from(lookback_seconds, :secs, :epoch)
     lookback_string = DateFormat.format!(lookback, "{RFC1123}")
 
-    :meck.new(Listener, [:passthrough])
-    :meck.expect(Listener, :get_module, fn _ -> %{
-      "updated_at" => lookback_string
-    } 
-    end)
-
     state = %{
-      modules: %{"123" => %{}}
+      listeners: %{"123" => %{"updated_at" => lookback_string}},
+      modules: %{"123" => %{"updated_at" => lookback_string}},
     }
     
     Manager.inactivate_listeners(state)
   after
-    :meck.unload(Listener)
     :meck.unload(MessagingExchangeModule)
   end   
 
@@ -105,37 +90,40 @@ defmodule OpenAperture.Overseer.Modules.ManagerTests do
     :meck.expect(Listener, :stop_listening, fn _ -> :ok end)
 
     state = %{
-      modules: %{"123abc" => %{}}
+      listeners: %{"123abc" => %{}},
+      modules: %{"123abc" => %{}},
     }
 
     modules = [%{"hostname" => "123abc"}]
     returned_state = Manager.stop_listeners(state, modules)
     assert returned_state != nil
-    assert returned_state[:modules] != nil
-    assert returned_state[:modules]["123abc"] == nil
+    assert returned_state[:listeners] != nil
+    assert returned_state[:listeners]["123abc"] == nil
   after
     :meck.unload(Listener)
   end
 
   test "stop_listeners - empty list" do
     state = %{
-      modules: %{}
+      listeners: %{},
+      modules: %{},
     }
 
     modules = []
     returned_state = Manager.stop_listeners(state, modules)
     assert returned_state != nil
-    assert returned_state[:modules] != nil
+    assert returned_state[:listeners] != nil
   end
 
   test "stop_listeners - nil" do
     state = %{
-      modules: %{}
+      listeners: %{},
+      modules: %{},
     }
 
     returned_state = Manager.stop_listeners(state, nil)
     assert returned_state != nil
-    assert returned_state[:modules] != nil
+    assert returned_state[:listeners] != nil
   end  
 
   #=====================
@@ -143,13 +131,14 @@ defmodule OpenAperture.Overseer.Modules.ManagerTests do
 
   test "start_listeners - already started listener" do
     state = %{
-      modules: %{"123abc" => %{}}
+      listeners: %{"123abc" => %{}},
+      modules: %{"123abc" => %{}},
     }
 
     modules = [%{"hostname" => "123abc"}]
     returned_state = Manager.start_listeners(state, modules)
     assert returned_state != nil
-    assert returned_state[:modules] != nil
+    assert returned_state[:listeners] != nil
     assert returned_state == state
   end
 
@@ -159,27 +148,29 @@ defmodule OpenAperture.Overseer.Modules.ManagerTests do
     :meck.expect(Listener, :start_listening, fn _ -> :ok end)
 
     state = %{
-      modules: %{}
+      listeners: %{},
+      modules: %{},
     }
 
     modules = [%{"hostname" => "123abc"}]
     returned_state = Manager.start_listeners(state, modules)
     assert returned_state != nil
-    assert returned_state[:modules] != nil
-    assert returned_state[:modules]["123abc"] == %{}
+    assert returned_state[:listeners] != nil
+    assert returned_state[:listeners]["123abc"] == %{}
   after
     :meck.unload(Listener)
   end
 
   test "start_listeners - empty list" do
     state = %{
-      modules: %{}
+      listeners: %{},
+      modules: %{},
     }
 
     modules = []
     returned_state = Manager.start_listeners(state, modules)
     assert returned_state != nil
-    assert returned_state[:modules] != state
+    assert returned_state[:listeners] != state
   end
 
   #=====================
@@ -187,7 +178,8 @@ defmodule OpenAperture.Overseer.Modules.ManagerTests do
 
   test "find_deleted_modules - no modules to delete" do
     state = %{
-      modules: %{"123abc" => %{}}
+      listeners: %{"123abc" => %{}},
+      modules: %{"123abc" => %{}},
     }
 
     modules = [%{"hostname" => "123abc"}]
@@ -200,7 +192,8 @@ defmodule OpenAperture.Overseer.Modules.ManagerTests do
     :meck.expect(Listener, :get_module, fn _ -> %{"hostname" => "123abc"} end)
 
     state = %{
-      modules: %{"123abc" => %{}}
+      listeners: %{"123abc" => %{}},
+      modules: %{"123abc" => %{}},
     }
 
     modules = []
