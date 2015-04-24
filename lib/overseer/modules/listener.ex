@@ -58,6 +58,7 @@ defmodule OpenAperture.Overseer.Modules.Listener do
       MessageManager.track(async_info)
       process_event(payload, delivery_tag)
       OpenAperture.Messaging.AMQP.SubscriptionHandler.acknowledge(subscription_handler, delivery_tag)
+      MessageManager.remove(delivery_tag)
     end) do
       {:ok, subscription_handler} -> subscription_handler
       {:error, reason} -> 
@@ -79,7 +80,7 @@ defmodule OpenAperture.Overseer.Modules.Listener do
   """
   @spec process_event(Map, String.t()) :: term
   def process_event(%{event_type: :status} = payload, _delivery_tag) do
-    Logger.debug("Received a status event from module")
+    Logger.debug("Received a status event from module #{payload[:hostname]}")
 
     new_module = %{
       hostname: payload[:hostname],
@@ -92,14 +93,13 @@ defmodule OpenAperture.Overseer.Modules.Listener do
       nil -> 
         response = MessagingExchangeModule.create_module(Configuration.get_current_exchange_id, new_module)
         if response.success? do
-          Logger.debug("[Listener] Successfully updated module")
+          Logger.debug("[Listener] Successfully updated module #{payload[:hostname]}")
           true
         else
-          Logger.error("[Listener] Failed to update module!  module - #{inspect payload}, status - #{inspect response.status}, errors - #{inspect response.raw_body}")
+          Logger.error("[Listener] Failed to update module #{payload[:hostname]}!  module - #{inspect payload}, status - #{inspect response.status}, errors - #{inspect response.raw_body}")
           false      
         end
-
-      _ -> Logger.debug("[Listener] Successfully updated module")
+      _ -> Logger.debug("[Listener] Successfully updated module #{payload[:hostname]}")
     end
   end
 
