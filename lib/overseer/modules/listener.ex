@@ -55,11 +55,11 @@ defmodule OpenAperture.Overseer.Modules.Listener do
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
     subscription_handler = case subscribe(options, event_queue, fn(payload, _meta, %{subscription_handler: subscription_handler, delivery_tag: delivery_tag} = async_info) -> 
-      Logger.debug("[Listener] Received message #{delivery_tag}")
-      MessageManager.track(async_info)
+      #Logger.debug("[Listener] Received message #{delivery_tag}")
+      #MessageManager.track(async_info)
       process_event(payload, delivery_tag)
       OpenAperture.Messaging.AMQP.SubscriptionHandler.acknowledge(subscription_handler, delivery_tag)
-      MessageManager.remove(delivery_tag)
+      #MessageManager.remove(delivery_tag)
     end) do
       {:ok, subscription_handler} -> 
         Logger.debug("[Listener] Successfully started event listener #{inspect subscription_handler}")
