@@ -36,22 +36,22 @@ defmodule OpenAperture.Overseer.Dispatcher do
   def start_link do
     case GenServer.start_link(__MODULE__, %{}, name: __MODULE__) do
     	{:error, reason} -> 
-        Logger.error("Failed to start OpenAperture Overseer:  #{inspect reason}")
+        Logger.error("[Dispatcher] Failed to start OpenAperture Overseer:  #{inspect reason}")
         {:error, reason}
     	{:ok, pid} ->
         try do
-          if Application.get_env(:autostart, :register_queues, false) do
+          if Application.get_env(:autostart, :register_queues, true) do
         		case register_queues do
               {:ok, _} -> {:ok, pid}
               {:error, reason} -> 
-                Logger.error("Failed to register Overseer queues:  #{inspect reason}")
+                Logger.error("[Dispatcher] Failed to register Overseer queues:  #{inspect reason}")
                 {:ok, pid}
             end    		
           else
             {:ok, pid}
           end
         rescue e in _ ->
-          Logger.error("An error occurred registering Overseer queues:  #{inspect e}")
+          Logger.error("[Dispatcher] An error occurred registering Overseer queues:  #{inspect e}")
           {:ok, pid}
         end
     end
@@ -66,7 +66,7 @@ defmodule OpenAperture.Overseer.Dispatcher do
   """
   @spec register_queues() :: :ok | {:error, String.t()}
   def register_queues do
-    Logger.debug("Registering Overseer queues...")
+    Logger.debug("[Dispatcher] Registering Overseer queues...")
     overseer_queue = QueueBuilder.build(ManagerApi.get_api, "overseer", Configuration.get_current_exchange_id)
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
@@ -87,7 +87,7 @@ defmodule OpenAperture.Overseer.Dispatcher do
   """
   @spec process_request(Map, String.t()) :: term
   def process_request(_payload, delivery_tag) do
-    Logger.debug("No action is required for message #{delivery_tag}")
+    Logger.debug("[Dispatcher] No action is required for message #{delivery_tag}")
     acknowledge(delivery_tag)
   end
 

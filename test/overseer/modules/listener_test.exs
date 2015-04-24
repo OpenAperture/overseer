@@ -20,11 +20,7 @@ defmodule OpenAperture.Overseer.Modules.ListenerTests do
       event_type: :bogus
     }
 
-    module = %{
-      "hostname" => "123abc"
-    }
-
-    assert Listener.process_event(payload, "delivery_tag", module)
+    assert Listener.process_event(payload, "delivery_tag")
   end
 
   test "process_event - status event" do
@@ -46,7 +42,7 @@ defmodule OpenAperture.Overseer.Modules.ListenerTests do
       "hostname" => "123abc"
     }
 
-    assert Listener.process_event(payload, "delivery_tag", module)
+    assert Listener.process_event(payload, "delivery_tag")
   after
     :meck.unload(MessagingExchangeModule)    
   end  
@@ -71,71 +67,10 @@ defmodule OpenAperture.Overseer.Modules.ListenerTests do
       "hostname" => "123abc"
     }
 
-    assert Listener.process_event(payload, "delivery_tag", module)
+    assert Listener.process_event(payload, "delivery_tag")
   after
     :meck.unload(MessagingExchangeModule)    
   end    
-
-  #=========================
-  # handle_call({:set_module})
-
-  test "handle_call({:set_module})" do
-    module = %{
-      hostname: "myhost",
-      type: :test,
-      status: :active,
-      workload: []      
-    }
-
-    state = %{}
-
-    {:noreply, module, %{module: module}} =  Listener.handle_call({:set_module, module}, %{}, state)
-  end   
-
-  #=========================
-  # handle_call({:get_module})
-
-  test "handle_call({:get_module})" do
-    module = %{
-      hostname: "myhost",
-      type: :test,
-      status: :active,
-      workload: []      
-    }
-
-    state = %{module: module}
-
-    {:noreply, module, %{module: module}} =  Listener.handle_call({:get_module}, %{}, state)
-  end   
-
-  #=========================
-  # handle_cast({:stop_listening})
-
-  test "handle_cast({:stop_listening})" do
-    :meck.new(ConnectionOptionsResolver, [:passthrough])
-    :meck.expect(ConnectionOptionsResolver, :get_for_broker, fn _, _ -> %{} end)
-
-    :meck.new(ConnectionPools, [:passthrough])
-    :meck.expect(ConnectionPools, :get_pool, fn _ -> %{} end)
-
-    :meck.new(ConnectionPool, [:passthrough])
-    :meck.expect(ConnectionPool, :unsubscribe, fn _, _ -> :ok end)
-
-    module = %{
-      hostname: "myhost",
-      type: :test,
-      status: :active,
-      workload: []      
-    }
-
-    state = %{module: module}
-
-    Listener.handle_cast({:stop_listening}, state)
-  after
-    :meck.unload(ConnectionOptionsResolver)
-    :meck.unload(ConnectionPools)
-    :meck.unload(ConnectionPool)
-  end  
 
   #=========================
   # handle_cast({:start_listening})
@@ -151,7 +86,7 @@ defmodule OpenAperture.Overseer.Modules.ListenerTests do
     :meck.expect(ConnectionPool, :subscribe, fn _, _, _, _ -> {:ok, %{}} end)
 
     :meck.new(QueueBuilder, [:passthrough])
-    :meck.expect(QueueBuilder, :build, fn _,_,_,_ -> %OpenAperture.Messaging.Queue{name: ""} end)      
+    :meck.expect(QueueBuilder, :build, fn _,_,_ -> %OpenAperture.Messaging.Queue{name: ""} end)      
 
     module = %{
       hostname: "myhost",
@@ -182,7 +117,7 @@ defmodule OpenAperture.Overseer.Modules.ListenerTests do
     :meck.expect(ConnectionPool, :subscribe, fn _, _, _, _ -> {:error, "bad news bears"} end)
 
     :meck.new(QueueBuilder, [:passthrough])
-    :meck.expect(QueueBuilder, :build, fn _,_,_,_ -> %OpenAperture.Messaging.Queue{name: ""} end)      
+    :meck.expect(QueueBuilder, :build, fn _,_,_ -> %OpenAperture.Messaging.Queue{name: ""} end)      
 
     module = %{
       hostname: "myhost",

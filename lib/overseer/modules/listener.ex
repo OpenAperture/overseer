@@ -30,67 +30,16 @@ defmodule OpenAperture.Overseer.Modules.Listener do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link(Map) :: {:ok, pid} | {:error, String.t()}   
-  def start_link(module) do
-    GenServer.start_link(__MODULE__, %{module: module}, [])
-  end
-
-  @doc """
-  Method to retrieve the module definition within the pid
-
-  ## Options
-
-  The `listener` option defines the listener PID
-
-  Current module definition
-  """
-  @spec get_module(pid) :: Map
-  def get_module(listener) do
-    GenServer.call(listener, {:get_module})
-  end
-
-  @doc """
-  Method to update the module definition within the pid
-
-  ## Options
-
-  The `listener` option defines the listener PID
-
-  The `module` option defines the system module map
-
-  Current module definition
-  """
-  @spec set_module(pid, Map) :: Map
-  def set_module(listener, module) do
-    GenServer.call(listener, {:set_module, module})
-  end
-
-  @doc """
-  Method to subscribe from the module queue
-
-  ## Options
-
-  The `listener` option defines the listener PID
-
-  :ok
-  """
-  @spec start_listening(pid) :: :ok
-  def start_listening(module) do
-    GenServer.cast(module, {:start_listening})
-  end
-
-  @doc """
-  Method to unsubscribe from the module queue
-
-  ## Options
-
-  The `listener` option defines the listener PID
-
-  :ok
-  """
-  @spec stop_listening(pid) :: :ok
-  def stop_listening(listener) do
-    GenServer.cast(listener, {:stop_listening})
+  @spec start_link() :: {:ok, pid} | {:error, String.t()}   
+  def start_link() do
+    case GenServer.start_link(__MODULE__, %{}, []) do
+      {:ok, listener} ->
+        if Application.get_env(:autostart, :start_listening, true) do
+          GenServer.cast(listener, {:start_listening})
+        end
+        {:ok, listener}
+      {:error, reason} -> {:error, reason}
+    end
   end
 
   @doc """
@@ -101,18 +50,18 @@ defmodule OpenAperture.Overseer.Modules.Listener do
   """
   @spec handle_cast({:start_listening}, Map) :: {:noreply, Map}
   def handle_cast({:start_listening}, state) do
-    Logger.debug("[Overseer][Listener][#{state[:module]["hostname"]}] Starting event listener...")
-    event_queue = QueueBuilder.build(ManagerApi.get_api, "module_#{state[:module]["hostname"]}", Configuration.get_current_exchange_id, [durable: false])
+    Logger.debug("[Listener] Starting event listener...")
+    event_queue = QueueBuilder.build(ManagerApi.get_api, "system_modules", Configuration.get_current_exchange_id)
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
     subscription_handler = case subscribe(options, event_queue, fn(payload, _meta, %{subscription_handler: subscription_handler, delivery_tag: delivery_tag} = async_info) -> 
       MessageManager.track(async_info)
-      process_event(payload, delivery_tag, state[:module]) 
+      process_event(payload, delivery_tag)
       OpenAperture.Messaging.AMQP.SubscriptionHandler.acknowledge(subscription_handler, delivery_tag)
     end) do
       {:ok, subscription_handler} -> subscription_handler
       {:error, reason} -> 
-        Logger.error("[Overseer][Listener][#{state[:module]["hostname"]}] Failed to start event listener:  #{inspect reason}")
+        Logger.error("[Listener] Failed to start event listener:  #{inspect reason}")
         nil
     end
 
@@ -120,44 +69,6 @@ defmodule OpenAperture.Overseer.Modules.Listener do
   end
 
   @doc """
-  GenServer callback for handling the :retrieve_module_list event.  This method
-  will retrieve MessagingExchangeModules for the configured messaging exchange.
-
-  {:noreply, new modules list}
-  """
-  @spec handle_cast({:stop_listening}, Map) :: {:noreply, List}
-  def handle_cast({:stop_listening}, state) do
-    Logger.debug("[Overseer][Listener][#{state[:module]["hostname"]}] Stopping event listener")
-    
-    unless state[:subscription_handler] == nil do
-      options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
-      unsubscribe(options, state[:subscription_handler])
-    end
-    {:noreply, state}
-  end
-
-  @doc """
-  GenServer callback for handling the :set_workflow event.  This method
-  will store the current worklow into the server's state.
-
-  {:noreply, state}
-  """
-  @spec handle_call({:get_module}, term, Map) :: {:reply, Map, Map}
-  def handle_call({:get_module}, _from, state) do
-    {:noreply, state[:module], state}
-  end
-
-  @doc """
-  GenServer callback for handling the :set_module event.  This method
-  will store the module into the server's state.
-
-  {:noreply, state}
-  """
-  @spec handle_call({:set_module, Map}, term, Map) :: {:reply, Map, Map}
-  def handle_call({:set_module, module}, _from, state) do
-    {:noreply, module, Map.put(state, :module, module)}
-  end
-  @doc """
   Method to process an incoming request
 
   ## Options
@@ -166,32 +77,29 @@ defmodule OpenAperture.Overseer.Modules.Listener do
 
   The `delivery_tag` option is the unique identifier of the message
   """
-  @spec process_event(Map, String.t(), Map) :: term
-  def process_event(%{event_type: :status} = payload, _delivery_tag, module) do
-    Logger.debug("[Overseer][Listener][#{module["hostname"]}] Received a status event from module")
+  @spec process_event(Map, String.t()) :: term
+  def process_event(%{event_type: :status} = payload, _delivery_tag) do
+    Logger.debug("Received a status event from module")
 
     new_module = %{
-      hostname: module["hostname"],
-      type: module["type"],
-      status: module["status"],
-      workload: module["workload"]
+      hostname: payload[:hostname],
+      type: payload[:type],
+      status: payload[:status],
+      workload: payload[:workload]
     }
-    if new_module["workload"] != nil do
-      new_module = Map.put(new_module, "workload", Poison.encode!(new_module["workload"]))
-    end
 
     case MessagingExchangeModule.create_module!(Configuration.get_current_exchange_id, new_module) do
       nil -> 
         response = MessagingExchangeModule.create_module(Configuration.get_current_exchange_id, new_module)
         if response.success? do
-          Logger.debug("[Overseer][Listener][#{module["hostname"]}] Successfully updated module")
+          Logger.debug("[Listener] Successfully updated module")
           true
         else
-          Logger.error("[Overseer][Listener][#{module["hostname"]}] Failed to update module!  module - #{inspect module}, status - #{inspect response.status}, errors - #{inspect response.raw_body}")
+          Logger.error("[Listener] Failed to update module!  module - #{inspect payload}, status - #{inspect response.status}, errors - #{inspect response.raw_body}")
           false      
         end
 
-      _ -> Logger.debug("[Overseer][Listener][#{module["hostname"]}] Successfully updated module")
+      _ -> Logger.debug("[Listener] Successfully updated module")
     end
   end
 
@@ -204,8 +112,8 @@ defmodule OpenAperture.Overseer.Modules.Listener do
 
   The `delivery_tag` option is the unique identifier of the message
   """
-  @spec process_event(Map, String.t(), Map) :: term
-  def process_event(%{event_type: type} = _payload, _delivery_tag, module) do
-    Logger.debug("[Overseer][Listener][#{module["hostname"]}] Received an unknown event:  #{inspect type}")
+  @spec process_event(Map, String.t()) :: term
+  def process_event(%{event_type: type} = _payload, _delivery_tag) do
+    Logger.debug("[Listener] Received an unknown event:  #{inspect type}")
   end
 end

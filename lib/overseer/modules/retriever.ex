@@ -26,12 +26,12 @@ defmodule OpenAperture.Overseer.Modules.Retriever do
   def start_link() do
     case GenServer.start_link(__MODULE__, [], name: __MODULE__) do
       {:ok, retriever} -> 
-				if Application.get_env(:autostart, :retrieve_modules, false) do
+				if Application.get_env(:autostart, :retrieve_modules, true) do
       		GenServer.cast(retriever, {:retrieve_module_list})
     		end
 
        	{:ok, retriever}
-      {:error, reason} -> {:error, "[Overseer][Retriever] Failed to create Modules.Manager: #{inspect reason}"}
+      {:error, reason} -> {:error, "[Retriever] Failed to create Modules.Manager: #{inspect reason}"}
     end
   end
 
@@ -49,7 +49,7 @@ defmodule OpenAperture.Overseer.Modules.Retriever do
     if sleep_seconds < 60 do
       sleep_seconds = 60
     end
-    Logger.debug("[Overseer][Retriever] Sleeping for #{sleep_seconds} seconds before retrieving system modules...")
+    Logger.debug("[Retriever] Sleeping for #{sleep_seconds} seconds before retrieving system modules...")
     :timer.sleep(sleep_seconds * 1000)
     GenServer.cast(__MODULE__, {:retrieve_module_list})
     
@@ -58,11 +58,11 @@ defmodule OpenAperture.Overseer.Modules.Retriever do
 
   def refresh_modules do
     exchange_id = Configuration.get_current_exchange_id
-    Logger.debug("[Overseer][Retriever] Retrieving system modules for exchange #{exchange_id}...")
+    Logger.debug("[Retriever] Retrieving system modules for exchange #{exchange_id}...")
 
     modules = case MessagingExchangeModule.list!(exchange_id) do
       nil -> 
-        Logger.error("[Overseer][Retriever] Unable to load system modules from exchange #{exchange_id}!")
+        Logger.error("[Retriever] Unable to load system modules from exchange #{exchange_id}!")
         nil
       modules -> modules
     end

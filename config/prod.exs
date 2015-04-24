@@ -15,11 +15,6 @@ use Mix.Config
 #       format: "$date $time [$level] $metadata$message\n",
 #       metadata: [:user_id]
 
-config :autostart,
-	register_queues: true,
-	retrieve_modules: true,
-	listen_module: true
-
 config :openaperture_manager_api, 
 	manager_url: System.get_env("MANAGER_URL"),
 	oauth_login_url: System.get_env("OAUTH_LOGIN_URL"),

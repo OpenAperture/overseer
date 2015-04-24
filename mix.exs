@@ -34,12 +34,9 @@ defmodule OpenAperture.Overseer.Mixfile do
 
       {:poison, "~> 1.3.1"},
       {:timex, "~> 0.13.3"},
-      {:openaperture_messaging, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/OpenAperture/messaging.git", 
-        ref: "671d48c1eb385747b57c41edda2065c9bb8171ba", override: true},
-      {:openaperture_manager_api, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/OpenAperture/manager_api.git", 
-        ref: "7698785f22fb5084671882e4bf14a8824804d53a", override: true},
-      {:openaperture_overseer_api, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/OpenAperture/overseer_api.git", 
-        ref: "515a4ad10c2a078dc0faee501d6109335f53b3e6", override: true},
+      {:openaperture_messaging, git: "https://github.com/OpenAperture/messaging.git", ref: "11061d019bab15c4b43425f7cdb50899eef05b45", override: true},
+      {:openaperture_manager_api, git: "https://github.com/OpenAperture/manager_api.git", ref: "ae629a4127acceac8a9791c85e5a0d3b67d1ad16", override: true},
+      {:openaperture_overseer_api, git: "https://github.com/OpenAperture/overseer_api.git", ref: "d2cd242af35e6b5c211a7d43a016e825a65e2dda", override: true},
         
       #test dependencies
       {:exvcr, github: "parroty/exvcr", override: true},

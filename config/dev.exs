@@ -14,8 +14,3 @@ use Mix.Config
 #       level: :info,
 #       format: "$date $time [$level] $metadata$message\n",
 #       metadata: [:user_id]
-
-config :autostart,
-	register_queues: true,
-	retrieve_modules: true,
-	listen_module: true

@@ -21,4 +21,7 @@ use Mix.Config
 # Configuration from the imported file will override the ones defined
 # here (which is why it is important to import them last).
 #
+config :logger, :console,
+  format: "$time $metadata[$level][Overseer]$message\n"
+
 import_config "#{Mix.env}.exs"
