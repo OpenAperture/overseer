@@ -94,8 +94,8 @@ defmodule OpenAperture.Overseer.Modules.Manager do
                 Logger.debug("[Manager] Module #{module["hostname"]} has not been updated in at least 10 minutes, inactive it")
                 module = Map.put(module, "state", :inactive)
                 case MessagingExchangeModule.create_module!(Application.get_env(:openaperture_overseer_api, :exchange_id), module) do
-                  true -> Logger.debug("[Manager] Successfully inactivated module #{module["hostname"]}")
-                  false -> Logger.error("[Manager] Failed to inactivated module #{module["hostname"]}!")
+                  nil -> Logger.error("[Manager] Failed to inactivated module #{module["hostname"]}!")
+                  _ -> Logger.debug("[Manager] Successfully inactivated module #{module["hostname"]}")
                 end
               true -> Logger.debug("[Manager] Module #{module["hostname"]} is still active")
             end
