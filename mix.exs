@@ -36,7 +36,7 @@ defmodule OpenAperture.Overseer.Mixfile do
       {:timex, "~> 0.13.3"},
       {:openaperture_messaging, git: "https://github.com/OpenAperture/messaging.git", ref: "0af47ad04667342251bd829e01379b6d7703433f", override: true},
       {:openaperture_manager_api, git: "https://github.com/OpenAperture/manager_api.git", ref: "5d442cfbdd45e71c1101334e185d02baec3ef945", override: true},
-      {:openaperture_overseer_api, git: "https://github.com/OpenAperture/overseer_api.git", ref: "d2cd242af35e6b5c211a7d43a016e825a65e2dda", override: true},
+      {:openaperture_overseer_api, git: "https://github.com/OpenAperture/overseer_api.git", ref: "4d65d2295f2730bc74ec695c32fa0d2478158182", override: true},
         
       #test dependencies
       {:exvcr, github: "parroty/exvcr", override: true},
