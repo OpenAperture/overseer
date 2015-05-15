@@ -67,7 +67,7 @@ defmodule OpenAperture.Overseer.Dispatcher do
   @spec register_queues() :: :ok | {:error, String.t()}
   def register_queues do
     Logger.debug("[Dispatcher] Registering Overseer queues...")
-    overseer_queue = QueueBuilder.build(ManagerApi.get_api, "overseer", Configuration.get_current_exchange_id)
+    overseer_queue = QueueBuilder.build(ManagerApi.get_api, Configuration.get_current_queue_name, Configuration.get_current_exchange_id)
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
     subscribe(options, overseer_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) -> 

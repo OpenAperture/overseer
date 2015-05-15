@@ -51,7 +51,7 @@ defmodule OpenAperture.Overseer.Modules.Listener do
   @spec handle_cast({:start_listening}, Map) :: {:noreply, Map}
   def handle_cast({:start_listening}, state) do
     Logger.debug("[Listener] Starting event listener...")
-    event_queue = QueueBuilder.build(ManagerApi.get_api, "system_modules", Configuration.get_current_exchange_id)
+    event_queue = QueueBuilder.build(ManagerApi.get_api, Configuration.get_current_system_modules_queue_name, Configuration.get_current_exchange_id)
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
     subscription_handler = case subscribe(options, event_queue, fn(payload, _meta, %{subscription_handler: subscription_handler, delivery_tag: delivery_tag} = async_info) -> 
