@@ -6,7 +6,7 @@ defmodule OpenAperture.Overseer.Modules.Listener do
   alias OpenAperture.Messaging.AMQP.QueueBuilder
   alias OpenAperture.Messaging.AMQP.SubscriptionHandler
 
-  alias OpenAperture.Overseer.MessageManager
+  #alias OpenAperture.Overseer.MessageManager
   alias OpenAperture.Overseer.Configuration
 
   alias OpenAperture.ManagerApi
@@ -54,11 +54,11 @@ defmodule OpenAperture.Overseer.Modules.Listener do
     event_queue = QueueBuilder.build(ManagerApi.get_api, Configuration.get_current_system_modules_queue_name, Configuration.get_current_exchange_id)
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
-    subscription_handler = case subscribe(options, event_queue, fn(payload, _meta, %{subscription_handler: subscription_handler, delivery_tag: delivery_tag} = async_info) -> 
+    subscription_handler = case subscribe(options, event_queue, fn(payload, _meta, %{subscription_handler: subscription_handler, delivery_tag: delivery_tag} = _async_info) -> 
       #Logger.debug("[Listener] Received message #{delivery_tag}")
       #MessageManager.track(async_info)
       process_event(payload, delivery_tag)
-      OpenAperture.Messaging.AMQP.SubscriptionHandler.acknowledge(subscription_handler, delivery_tag)
+      SubscriptionHandler.acknowledge(subscription_handler, delivery_tag)
       #MessageManager.remove(delivery_tag)
     end) do
       {:ok, subscription_handler} -> 
