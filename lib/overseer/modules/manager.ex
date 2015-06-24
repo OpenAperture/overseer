@@ -68,19 +68,19 @@ defmodule OpenAperture.Overseer.Modules.Manager do
       Logger.debug("[Manager] Reviewing #{length(modules)} modules for inactivation...")
       Enum.reduce modules, [], fn(module, _inactive_modules) ->
         try do
-          Logger.debug("[Manager] Reviewing module #{module["hostname"]} for activation status...")
-
           diff_seconds = get_last_updated_seconds(module)
+          Logger.debug("[Manager] Reviewing module #{module["hostname"]} for activation status (last updated #{diff_seconds} seconds ago):  #{inspect module}")
+        
           cond do 
-            module["state"] == "inactive" && diff_seconds > 600 ->
+            module["status"] == "inactive" && diff_seconds > 600 ->
               Logger.debug("[Manager] Module #{module["hostname"]} has not been updated in at least 20 minutes, delete it")
               case MessagingExchangeModule.delete_module!(Application.get_env(:openaperture_overseer_api, :exchange_id), module["hostname"]) do
                 true -> Logger.debug("[Manager] Successfully deleted module #{module["hostname"]}")
                 false -> Logger.error("[Manager] Failed to deleted module #{module["hostname"]}!")
               end
-            module["state"] != "inactive" && diff_seconds > 600 ->
+            module["status"] != "inactive" && diff_seconds > 600 ->
+              module = Map.put(module, "status", :inactive)
               Logger.debug("[Manager] Module #{module["hostname"]} has not been updated in at least 10 minutes, inactive it")
-              module = Map.put(module, "state", :inactive)
               case MessagingExchangeModule.create_module!(Application.get_env(:openaperture_overseer_api, :exchange_id), module) do
                 nil -> Logger.error("[Manager] Failed to inactivated module #{module["hostname"]}!")
                 _ -> Logger.debug("[Manager] Successfully inactivated module #{module["hostname"]}")
