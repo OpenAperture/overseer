@@ -70,40 +70,42 @@ defmodule OpenAperture.Overseer.Modules.Manager do
         try do
           Logger.debug("[Manager] Reviewing module #{module["hostname"]} for activation status...")
 
-          if module["updated_at"] == nil || String.length(module["updated_at"]) == 0 do
-            Logger.error("[Manager] Unable to review module #{module["hostname"]} because it does not have a valid updated_at time!")
-          else
-            {:ok, updated_at} = DateFormat.parse(module["updated_at"], "{RFC1123}")
-            updated_at_secs = Date.convert(updated_at, :secs) #since epoch
-            
-            now = Date.now #utc
-            now_secs = Date.convert(now, :secs) #since epoch      
-
-            diff_seconds = now_secs - updated_at_secs
-            cond do 
-              #if the module hasn't been updated in 20 minutes, delete it
-              #don't worry about stopping the listener and updating state, that will happen next refresh
-              diff_seconds > 1200 ->
-                Logger.debug("[Manager] Module #{module["hostname"]} has not been updated in at least 20 minutes, delete it")
-                case MessagingExchangeModule.delete_module!(Application.get_env(:openaperture_overseer_api, :exchange_id), module["hostname"]) do
-                  true -> Logger.debug("[Manager] Successfully deleted module #{module["hostname"]}")
-                  false -> Logger.error("[Manager] Failed to deleted module #{module["hostname"]}!")
-                end
-              #if the module hasn't been updated in 10 minutes, inactive it (and update the state)
-              diff_seconds > 600 ->
-                Logger.debug("[Manager] Module #{module["hostname"]} has not been updated in at least 10 minutes, inactive it")
-                module = Map.put(module, "state", :inactive)
-                case MessagingExchangeModule.create_module!(Application.get_env(:openaperture_overseer_api, :exchange_id), module) do
-                  nil -> Logger.error("[Manager] Failed to inactivated module #{module["hostname"]}!")
-                  _ -> Logger.debug("[Manager] Successfully inactivated module #{module["hostname"]}")
-                end
-              true -> Logger.debug("[Manager] Module #{module["hostname"]} is still active")
-            end
+          diff_seconds = get_last_updated_seconds(module)
+          cond do 
+            module["state"] == "inactive" && diff_seconds > 600 ->
+              Logger.debug("[Manager] Module #{module["hostname"]} has not been updated in at least 20 minutes, delete it")
+              case MessagingExchangeModule.delete_module!(Application.get_env(:openaperture_overseer_api, :exchange_id), module["hostname"]) do
+                true -> Logger.debug("[Manager] Successfully deleted module #{module["hostname"]}")
+                false -> Logger.error("[Manager] Failed to deleted module #{module["hostname"]}!")
+              end
+            module["state"] != "inactive" && diff_seconds > 600 ->
+              Logger.debug("[Manager] Module #{module["hostname"]} has not been updated in at least 10 minutes, inactive it")
+              module = Map.put(module, "state", :inactive)
+              case MessagingExchangeModule.create_module!(Application.get_env(:openaperture_overseer_api, :exchange_id), module) do
+                nil -> Logger.error("[Manager] Failed to inactivated module #{module["hostname"]}!")
+                _ -> Logger.debug("[Manager] Successfully inactivated module #{module["hostname"]}")
+              end
+            true -> Logger.debug("[Manager] Module #{module["hostname"]} is still active")
           end
         rescue e ->
           Logger.error("[Manager] An error occurred parsing updated_at time for a module:  #{inspect e}")
         end     
       end 
     end 	
+  end
+
+  defp get_last_updated_seconds(module) do
+    if module["updated_at"] == nil || String.length(module["updated_at"]) == 0 do
+      Logger.error("[Manager] Unable to review module #{module["hostname"]} because it does not have a valid updated_at time!")
+      -1
+    else
+     {:ok, updated_at} = DateFormat.parse(module["updated_at"], "{RFC1123}")
+      updated_at_secs = Date.convert(updated_at, :secs) #since epoch
+      
+      now = Date.now #utc
+      now_secs = Date.convert(now, :secs) #since epoch      
+
+      now_secs - updated_at_secs
+    end    
   end
 end
