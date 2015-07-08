@@ -115,7 +115,7 @@ defmodule OpenAperture.Overseer.Dispatcher do
   The `delivery_tag` option is the unique identifier of the message
   """
   @spec process_request(term, Map, String.t()) :: term
-  def process_request(unknown_action, options, delivery_tag) do
+  def process_request(unknown_action, _options, delivery_tag) do
     Logger.error("#{@logprefix} Unable to process request with action #{unknown_action}!  This action is not currently supported")
     acknowledge(delivery_tag)
   end

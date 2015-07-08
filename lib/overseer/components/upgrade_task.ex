@@ -4,7 +4,6 @@ require Timex.Date
 defmodule OpenAperture.Overseer.Components.UpgradeTask do
 
   alias OpenAperture.Overseer.Components.ComponentMgr
-  alias OpenAperture.Overseer.Components.UpgradeTask
   alias OpenAperture.Overseer.Components.MonitorTask
 
   alias OpenAperture.ManagerApi

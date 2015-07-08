@@ -6,18 +6,12 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
   use Timex
 
   alias OpenAperture.ManagerApi
-  alias OpenAperture.ManagerApi.MessagingExchange
-  alias OpenAperture.ManagerApi.SystemComponentRef
   alias OpenAperture.ManagerApi.SystemComponent
 
-  alias OpenAperture.Overseer.Configuration
   alias OpenAperture.Overseer.Components.ComponentStatusMgr
   alias OpenAperture.Overseer.Components.UpgradeTask
 
   @logprefix "[Components][ComponentMgr]"
-
-  def get_for_component_type(type) do
-  end
 
   @moduledoc """
   This module contains the GenServer for managing a specific SystemComponent and kicking off upgrades as needed

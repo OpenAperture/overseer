@@ -6,7 +6,6 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
   alias OpenAperture.Overseer.Components.MonitorTask
   alias OpenAperture.Overseer.Components.ComponentMgr
   alias OpenAperture.ManagerApi
-  alias OpenAperture.ManagerApi.SystemComponent
   alias OpenAperture.ManagerApi.Workflow
 
   @logprefix "[Components][MonitorTask]"
@@ -79,7 +78,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
 
         component = Map.put(component, "status", "upgrade_failed")
         component = Map.put(component, "upgrade_status", upgrade_status)
-        component = ComponentMgr.save(mgr, component)
+        ComponentMgr.save(mgr, component)
         ComponentMgr.set_task(mgr, :monitoring_task, nil)
     end
   end
