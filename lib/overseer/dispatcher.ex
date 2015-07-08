@@ -13,8 +13,14 @@ defmodule OpenAperture.Overseer.Dispatcher do
 
   alias OpenAperture.Overseer.MessageManager
   alias OpenAperture.Overseer.Configuration
+  alias OpenAperture.Overseer.Components.ComponentsMgr
+  alias OpenAperture.Overseer.Components.ComponentMgr
+
+  alias OpenAperture.OverseerApi.Request
 
   alias OpenAperture.ManagerApi
+
+  @logprefix "[Dispatcher]"
 
   @moduledoc """
   This module contains the logic to dispatch Overseer messsages to the appropriate GenServer(s) 
@@ -36,7 +42,7 @@ defmodule OpenAperture.Overseer.Dispatcher do
   def start_link do
     case GenServer.start_link(__MODULE__, %{}, name: __MODULE__) do
     	{:error, reason} -> 
-        Logger.error("[Dispatcher] Failed to start OpenAperture Overseer:  #{inspect reason}")
+        Logger.error("#{@logprefix} Failed to start OpenAperture Overseer:  #{inspect reason}")
         {:error, reason}
     	{:ok, pid} ->
         try do
@@ -44,14 +50,14 @@ defmodule OpenAperture.Overseer.Dispatcher do
         		case register_queues do
               {:ok, _} -> {:ok, pid}
               {:error, reason} -> 
-                Logger.error("[Dispatcher] Failed to register Overseer queues:  #{inspect reason}")
+                Logger.error("#{@logprefix} Failed to register Overseer queues:  #{inspect reason}")
                 {:ok, pid}
             end    		
           else
             {:ok, pid}
           end
         rescue e in _ ->
-          Logger.error("[Dispatcher] An error occurred registering Overseer queues:  #{inspect e}")
+          Logger.error("#{@logprefix} An error occurred registering Overseer queues:  #{inspect e}")
           {:ok, pid}
         end
     end
@@ -66,28 +72,51 @@ defmodule OpenAperture.Overseer.Dispatcher do
   """
   @spec register_queues() :: :ok | {:error, String.t()}
   def register_queues do
-    Logger.debug("[Dispatcher] Registering Overseer queues...")
+    Logger.debug("#{@logprefix} Registering Overseer queues...")
     overseer_queue = QueueBuilder.build(ManagerApi.get_api, Configuration.get_current_queue_name, Configuration.get_current_exchange_id)
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
     subscribe(options, overseer_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) -> 
       MessageManager.track(async_info)
-      process_request(payload, delivery_tag) 
+
+      request = Request.from_payload(payload)
+      process_request(request.action, request.options, delivery_tag) 
     end)
   end
 
   @doc """
-  Method to process an incoming request
+  Method to process a request with action of :upgrade_request
 
   ## Options
 
-  The `payload` option is the Map of HipChat options
+  The `request` option is the Request
+
+  The `options` option defines action-specific options
 
   The `delivery_tag` option is the unique identifier of the message
   """
-  @spec process_request(Map, String.t()) :: term
-  def process_request(_payload, delivery_tag) do
-    Logger.debug("[Dispatcher] No action is required for message #{delivery_tag}")
+  @spec process_request(:upgrade_request, Map, String.t()) :: term
+  def process_request(:upgrade_request, options, delivery_tag) do
+    Logger.debug("#{@logprefix} Processing an upgrade request for component #{options[:component_type]}...")
+    mgr = ComponentsMgr.get_mgr_for_component_type(options[:component_type])
+    if mgr != nil, do: ComponentMgr.request_upgrade(mgr)
+    acknowledge(delivery_tag)
+  end
+
+  @doc """
+  Method to process a request with an unknown action
+
+  ## Options
+
+  The `request` option is the Request
+
+  The `options` option defines action-specific options
+
+  The `delivery_tag` option is the unique identifier of the message
+  """
+  @spec process_request(term, Map, String.t()) :: term
+  def process_request(unknown_action, options, delivery_tag) do
+    Logger.error("#{@logprefix} Unable to process request with action #{unknown_action}!  This action is not currently supported")
     acknowledge(delivery_tag)
   end
 

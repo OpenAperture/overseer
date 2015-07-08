@@ -48,7 +48,8 @@ defmodule OpenAperture.Overseer.Supervisor do
       worker(OpenAperture.Overseer.MessageManager, []),
       worker(OpenAperture.Overseer.Modules.Retriever, []),
       worker(OpenAperture.Overseer.Modules.Manager, []),
-      worker(OpenAperture.Overseer.Modules.Listener, [])
+      worker(OpenAperture.Overseer.Modules.Listener, []),
+      worker(OpenAperture.Overseer.Components.ComponentsMgr, [])
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__]

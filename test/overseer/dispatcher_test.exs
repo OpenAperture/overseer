@@ -3,6 +3,8 @@ defmodule OpenAperture.Overseer.DispatcherTests do
   use ExVCR.Mock, adapter: ExVCR.Adapter.Httpc
 
   alias OpenAperture.Overseer.Dispatcher
+  alias OpenAperture.Overseer.Components.ComponentsMgr
+  alias OpenAperture.Overseer.Components.ComponentMgr
 
   alias OpenAperture.Messaging.AMQP.ConnectionPool
   alias OpenAperture.Messaging.AMQP.ConnectionPools
@@ -83,4 +85,52 @@ defmodule OpenAperture.Overseer.DispatcherTests do
     :meck.unload(MessageManager)
     :meck.unload(SubscriptionHandler)
   end  
+
+  #=================
+  # process_request(:upgrade_request) tests
+
+  test "process_request(:upgrade_request)" do
+    :meck.new(MessageManager, [:passthrough])
+    :meck.expect(MessageManager, :remove, fn _ -> %{} end)
+
+    :meck.new(SubscriptionHandler, [:passthrough])
+    :meck.expect(SubscriptionHandler, :acknowledge, fn _, _ -> :ok end)
+
+    :meck.new(ComponentMgr, [:passthrough])
+    :meck.expect(ComponentMgr, :request_upgrade, fn _ -> :ok end)
+
+    :meck.new(ComponentsMgr, [:passthrough])
+    :meck.expect(ComponentsMgr, :get_mgr_for_component_type, fn _ -> %{} end)
+
+    Dispatcher.process_request(:upgrade_request, %{component_type: :test}, "delivery_tag")
+  after
+    :meck.unload(MessageManager)
+    :meck.unload(SubscriptionHandler)
+    :meck.unload(ComponentMgr)
+    :meck.unload(ComponentsMgr)
+  end
+
+  #=================
+  # process_request(:other) tests
+
+  test "process_request(:other)" do
+    :meck.new(MessageManager, [:passthrough])
+    :meck.expect(MessageManager, :remove, fn _ -> %{} end)
+
+    :meck.new(SubscriptionHandler, [:passthrough])
+    :meck.expect(SubscriptionHandler, :acknowledge, fn _, _ -> :ok end)
+
+    :meck.new(ComponentMgr, [:passthrough])
+    :meck.expect(ComponentMgr, :request_upgrade, fn _ -> :ok end)
+
+    :meck.new(ComponentsMgr, [:passthrough])
+    :meck.expect(ComponentsMgr, :get_mgr_for_component_type, fn _ -> %{} end)
+
+    Dispatcher.process_request(:other, %{component_type: :test}, "delivery_tag")
+  after
+    :meck.unload(MessageManager)
+    :meck.unload(SubscriptionHandler)
+    :meck.unload(ComponentMgr)
+    :meck.unload(ComponentsMgr)
+  end
 end

@@ -18,7 +18,9 @@ use Mix.Config
 config :autostart,
 	register_queues: false,
 	retrieve_modules: false,
-	start_listening: false
+	start_listening: false,
+	component_mgr: false,
+	resolve_system_components: false
 
 config :openaperture_manager_api, 
 	manager_url: System.get_env("MANAGER_URL") || "https://openaperture-mgr.host.co",
