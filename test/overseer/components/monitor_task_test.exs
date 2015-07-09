@@ -180,7 +180,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTaskTests do
     :meck.unload(Workflow)
   end 
 
-  test "resolve_current_workflow - first workflow in progress" do
+  test "resolve_current_workflow - first workflow in progress 2" do
     workflow_success_uuid = "#{UUID.uuid1()}" 
     workflow_success = %{
       "id" => workflow_success_uuid,

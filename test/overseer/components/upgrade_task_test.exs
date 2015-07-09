@@ -474,6 +474,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTaskTests do
     {:ok, mgr} = ComponentMgr.start_link(component)
     :meck.new(ComponentMgr, [:passthrough])
     :meck.expect(ComponentMgr, :refresh, fn _ -> component end)
+    :meck.expect(ComponentMgr, :save, fn _,_ -> component end)
 
     UpgradeTask.execute_upgrade(mgr)
   after
