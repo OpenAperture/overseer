@@ -72,7 +72,7 @@ defmodule OpenAperture.Overseer.Dispatcher do
   """
   @spec register_queues() :: :ok | {:error, String.t()}
   def register_queues do
-    Logger.debug("#{@logprefix} Registering Overseer queues...")
+    Logger.debug("#{@logprefix} Registering #{Configuration.get_current_queue_name} queue...")
     overseer_queue = QueueBuilder.build(ManagerApi.get_api, Configuration.get_current_queue_name, Configuration.get_current_exchange_id)
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
@@ -80,7 +80,19 @@ defmodule OpenAperture.Overseer.Dispatcher do
       MessageManager.track(async_info)
 
       request = Request.from_payload(payload)
-      process_request(request.action, request.options, delivery_tag) 
+      try do
+        process_request(request.action, request.options, delivery_tag) 
+      catch
+        :exit, code   -> 
+          Logger.error("Message #{delivery_tag} (action #{request.action}) Exited with code #{inspect code}.  Payload:  #{inspect payload}")
+          acknowledge(delivery_tag)
+        :throw, value -> 
+          Logger.error("Message #{delivery_tag} (action #{request.action}) Throw called with #{inspect value}.  Payload:  #{inspect payload}")
+          acknowledge(delivery_tag)
+        what, value   -> 
+          Logger.error("Message #{delivery_tag} (action #{request.action}) Caught #{inspect what} with #{inspect value}.  Payload:  #{inspect payload}")
+          acknowledge(delivery_tag)
+      end         
     end)
   end
 
