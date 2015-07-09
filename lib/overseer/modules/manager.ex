@@ -69,7 +69,7 @@ defmodule OpenAperture.Overseer.Modules.Manager do
       Enum.reduce modules, [], fn(module, _inactive_modules) ->
         try do
           diff_seconds = get_last_updated_seconds(module)
-          Logger.debug("[Manager] Reviewing module #{module["hostname"]} for activation status (last updated #{diff_seconds} seconds ago):  #{inspect module}")
+          Logger.debug("[Manager] Reviewing module #{module["hostname"]} for activation status (last updated #{diff_seconds} seconds ago)...")
         
           cond do 
             module["status"] == "inactive" && diff_seconds > 600 ->
