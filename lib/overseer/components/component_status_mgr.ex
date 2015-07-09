@@ -45,7 +45,7 @@ defmodule OpenAperture.Overseer.Components.ComponentStatusMgr do
   def handle_cast({:check_for_upgrade}, state) do
     check_for_upgrade(state)
 
-    GenServer.cast(__MODULE__, {:check_for_upgrade})
+    GenServer.cast(self, {:check_for_upgrade})
     {:noreply, state}
   end
 

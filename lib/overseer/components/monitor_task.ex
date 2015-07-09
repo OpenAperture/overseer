@@ -27,8 +27,10 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
   """
   @spec create(pid) :: Task
   def create(mgr) do
-    task = Task.async(fn -> 
+    Task.async(fn -> 
       try do
+        ComponentMgr.set_task(mgr, :monitoring_task, self)
+
         #wait a minute before doing any checks
         :timer.sleep(60000)
         execute_monitoring(mgr)
@@ -47,7 +49,6 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
           ComponentMgr.set_task(mgr, :monitoring_task, nil)
       end
     end)
-    ComponentMgr.set_task(mgr, :monitoring_task, task)
   end
 
   @doc """

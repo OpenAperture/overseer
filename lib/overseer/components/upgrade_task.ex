@@ -29,14 +29,14 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
   """
   @spec create(pid) :: Task
 	def create(mgr) do
-    task = Task.async(fn -> 
+    Task.async(fn -> 
       try do
+        ComponentMgr.set_task(mgr, :upgrade_task, self)
         execute_upgrade(mgr)
       after
         ComponentMgr.set_task(mgr, :upgrade_task, nil)
       end
     end)
-    ComponentMgr.set_task(mgr, :upgrade_task, task)
   end
 
   @doc """
