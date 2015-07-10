@@ -50,8 +50,6 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
   def execute_upgrade(mgr) do
     #refresh to make sure that nothing has changed
     component = ComponentMgr.refresh(mgr)
-    original_status = component["status"]
-    if original_status == nil, do: original_status = "unknown"
     type = component["type"]
 
     Logger.debug("#{@logprefix}[#{component["type"]}] An upgrade has been request for component #{type}, ensuring eligibility...")
@@ -62,7 +60,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
         upgrade_status = component["upgrade_status"]
         if upgrade_status == nil, do: upgrade_status = %{}
         upgrade_status = Map.put(upgrade_status, "failure_reason", "Component #{type} is not eligible for upgrade:  #{inspect reason}")
-        component = Map.put(component, "status", original_status)
+        component = Map.put(component, "status", "ineligible_for_upgrade")
         component = Map.put(component, "upgrade_status", upgrade_status)
 
         ComponentMgr.save(mgr, component)
