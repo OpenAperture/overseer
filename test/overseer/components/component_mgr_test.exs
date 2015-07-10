@@ -207,4 +207,75 @@ defmodule OpenAperture.Overseer.Components.ComponentMgrTests do
   after
     :meck.unload(ComponentStatusMgr)
   end
+
+  # ===================================
+  # current_upgrade_task tests
+
+  test "current_upgrade_task - no current task" do
+    :meck.new(ComponentStatusMgr, [:passthrough])
+    :meck.expect(ComponentStatusMgr, :start_link, fn _ -> {:ok, nil} end)
+
+    component = %{
+      "id" => "#{UUID.uuid1()}",
+      "type" => "test"
+    }
+    {:ok, mgr} = ComponentMgr.start_link(component)
+
+    returned_task = ComponentMgr.current_upgrade_task(mgr)
+    assert returned_task == nil
+  after
+    :meck.unload(ComponentStatusMgr)
+  end
+
+  test "current_upgrade_task - upgrade task" do
+    :meck.new(ComponentStatusMgr, [:passthrough])
+    :meck.expect(ComponentStatusMgr, :start_link, fn _ -> {:ok, nil} end)
+
+    component = %{
+      "id" => "#{UUID.uuid1()}",
+      "type" => "test"
+    }
+    {:ok, mgr} = ComponentMgr.start_link(component)
+    ComponentMgr.set_task(mgr, :upgrade_task, %{})
+
+    returned_task = ComponentMgr.current_upgrade_task(mgr)
+    assert returned_task != nil
+  after
+    :meck.unload(ComponentStatusMgr)
+  end
+
+  test "current_upgrade_task - monitoring task" do
+    :meck.new(ComponentStatusMgr, [:passthrough])
+    :meck.expect(ComponentStatusMgr, :start_link, fn _ -> {:ok, nil} end)
+
+    component = %{
+      "id" => "#{UUID.uuid1()}",
+      "type" => "test"
+    }
+    {:ok, mgr} = ComponentMgr.start_link(component)
+    ComponentMgr.set_task(mgr, :monitoring_task, %{})
+
+    returned_task = ComponentMgr.current_upgrade_task(mgr)
+    assert returned_task != nil
+  after
+    :meck.unload(ComponentStatusMgr)
+  end
+
+  test "current_upgrade_task - all task" do
+    :meck.new(ComponentStatusMgr, [:passthrough])
+    :meck.expect(ComponentStatusMgr, :start_link, fn _ -> {:ok, nil} end)
+
+    component = %{
+      "id" => "#{UUID.uuid1()}",
+      "type" => "test"
+    }
+    {:ok, mgr} = ComponentMgr.start_link(component)
+    ComponentMgr.set_task(mgr, :upgrade_task, %{})
+    ComponentMgr.set_task(mgr, :monitoring_task, %{test: ""})
+
+    returned_task = ComponentMgr.current_upgrade_task(mgr)
+    assert returned_task == %{test: ""}
+  after
+    :meck.unload(ComponentStatusMgr)
+  end
 end

@@ -62,25 +62,29 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
   @spec execute_monitoring(pid) :: term
   def execute_monitoring(mgr) do
     component = ComponentMgr.refresh(mgr)
-    case check_status(mgr, component) do
-      {:ok, status} -> 
-        Logger.info("#{@logprefix}[#{component["type"]}] Upgrade monitoring task for type #{component["type"]} (#{component["id"]}) has completed in status #{inspect status}")
-        
-        #save status
-        component = Map.put(component, "status", "upgrade_completed")
-        component = Map.put(component, "upgrade_status", nil)
-        component = ComponentMgr.save(mgr, component)
-      {:error, reason} ->
-        Logger.error("#{@logprefix}[#{component["type"]}] Upgrade monitoring task for type #{component["type"]} (#{component["id"]}) has failed: #{inspect reason}")
-        
-        #save failure
-        upgrade_status = component["upgrade_status"]
-        upgrade_status = Map.put(upgrade_status, "failure_reason", "Upgrade monitoring task for type #{component["type"]} (#{component["id"]}) has failed: #{inspect reason}")
+    if component["status"] != "upgrade_in_progress" do
+      Logger.info("#{@logprefix}[#{component["type"]}] Component #{component["type"]} (#{component["id"]}) is not being upgraded (status is #{component["status"]}),  monitoring complete.")
+    else
+      case check_upgrade_status(mgr, component) do
+        {:ok, status} -> 
+          Logger.info("#{@logprefix}[#{component["type"]}] Upgrade monitoring task for type #{component["type"]} (#{component["id"]}) has completed in status #{inspect status}")
+          
+          #save status
+          component = Map.put(component, "status", "upgrade_completed")
+          component = Map.put(component, "upgrade_status", nil)
+          component = ComponentMgr.save(mgr, component)
+        {:error, reason} ->
+          Logger.error("#{@logprefix}[#{component["type"]}] Upgrade monitoring task for type #{component["type"]} (#{component["id"]}) has failed: #{inspect reason}")
+          
+          #save failure
+          upgrade_status = component["upgrade_status"]
+          upgrade_status = Map.put(upgrade_status, "failure_reason", "Upgrade monitoring task for type #{component["type"]} (#{component["id"]}) has failed: #{inspect reason}")
 
-        component = Map.put(component, "status", "upgrade_failed")
-        component = Map.put(component, "upgrade_status", upgrade_status)
-        ComponentMgr.save(mgr, component)
-        ComponentMgr.set_task(mgr, :monitoring_task, nil)
+          component = Map.put(component, "status", "upgrade_failed")
+          component = Map.put(component, "upgrade_status", upgrade_status)
+          ComponentMgr.save(mgr, component)
+          ComponentMgr.set_task(mgr, :monitoring_task, nil)
+      end
     end
   end
 
@@ -96,8 +100,8 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
   {:ok, updated_status} | {:error, reason}
 
   """
-  @spec check_status(pid, Map) :: {:ok, term} | {:error, term}
-  def check_status(mgr, component) do
+  @spec check_upgrade_status(pid, Map) :: {:ok, term} | {:error, term}
+  def check_upgrade_status(mgr, component) do
     current_workflow = resolve_current_workflow(component["upgrade_status"])
 
     cond do

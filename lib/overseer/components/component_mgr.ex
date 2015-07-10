@@ -10,6 +10,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   alias OpenAperture.Overseer.Components.ComponentStatusMgr
   alias OpenAperture.Overseer.Components.UpgradeTask
+  alias OpenAperture.Overseer.Components.MonitorTask
 
   @logprefix "[Components][ComponentMgr]"
 
@@ -42,7 +43,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
             #if the Overseer gets restarted as a result of an upgrade, we need to restart the monitoring task
             if component["status"] == "upgrade_in_progress" do
               Logger.debug("#{@logprefix}[#{component["type"]}] An upgrade is in-progress, creating a Monitoring task...")
-              task = MonitorTask.create(mgr, component)
+              task = MonitorTask.create(mgr)
               set_task(mgr, :monitoring_task, task)
             end
             {:ok, mgr}
@@ -114,6 +115,22 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
   @spec request_upgrade(pid) :: Task
   def request_upgrade(mgr) do
     GenServer.call(mgr, {:request_upgrade})
+  end
+
+  @doc """
+  Method to get the current upgrade/monitor Task
+
+  ## Option Values
+
+  The `mgr` option is the GenServer PID
+
+  ## Return Values
+
+  the upgrade / monitoring async Task
+  """
+  @spec current_upgrade_task(pid) :: Task
+  def current_upgrade_task(mgr) do
+    GenServer.call(mgr, {:current_upgrade_task})
   end
 
   @doc """
@@ -231,6 +248,30 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
       true -> 
         Logger.debug("#{@logprefix}[#{state[:component]["type"]}] An upgrade has been requested for component #{state[:component]["id"]}; a new upgrade has been requested")
         UpgradeTask.create(self)
+    end
+
+    {:reply, task, state}
+  end
+
+  @doc """
+  GenServer callback to retrieve the currently executing task
+
+  ## Option Values
+
+  The `_from` option is the caller's PID
+
+  The `state` option is the GenServer's state
+
+  ## Return Values
+
+  {:reply, Task, state}
+  """
+  @spec handle_call({:current_upgrade_task}, pid, Map) :: {:reply, Task, Map}
+  def handle_call({:current_upgrade_task}, _from, state) do
+    task = cond do
+      state[:monitoring_task] != nil -> state[:monitoring_task]
+      state[:upgrade_task] != nil -> state[:upgrade_task]
+      true -> nil
     end
 
     {:reply, task, state}

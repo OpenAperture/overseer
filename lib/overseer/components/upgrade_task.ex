@@ -54,7 +54,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
     if original_status == nil, do: original_status = "unknown"
     type = component["type"]
 
-    Logger.debug("#{@logprefix}[#{component["type"]}] An upgrade has been reqeust for component #{type}, ensuring eligibility...")
+    Logger.debug("#{@logprefix}[#{component["type"]}] An upgrade has been request for component #{type}, ensuring eligibility...")
     case eligible_for_upgrade?(component) do
       {false, reason} ->
         Logger.debug("#{@logprefix}[#{component["type"]}] Component #{type} is not eligible for upgrade:  #{inspect reason}")

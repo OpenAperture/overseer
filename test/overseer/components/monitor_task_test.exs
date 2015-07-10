@@ -279,9 +279,9 @@ defmodule OpenAperture.Overseer.Components.MonitorTaskTests do
   end
 
   #==============
-  # check_status tests
+  # check_upgrade_status tests
   
-  test "check_status - workflow completed" do
+  test "check_upgrade_status - workflow completed" do
     workflow_success_uuid = "#{UUID.uuid1()}" 
     workflow_success = %{
       "id" => workflow_success_uuid,
@@ -311,13 +311,13 @@ defmodule OpenAperture.Overseer.Components.MonitorTaskTests do
     :meck.expect(ComponentStatusMgr, :start_link, fn _ -> {:ok, nil} end)
 
     {:ok, mgr} = ComponentMgr.start_link(component)
-    assert MonitorTask.check_status(mgr, component) == {:ok, :upgrade_completed}
+    assert MonitorTask.check_upgrade_status(mgr, component) == {:ok, :upgrade_completed}
   after
     :meck.unload(Workflow)
     :meck.unload(ComponentStatusMgr)
   end
 
-  test "check_status - workflow not started, failed to execute" do
+  test "check_upgrade_status - workflow not started, failed to execute" do
     workflow_success_uuid = "#{UUID.uuid1()}" 
     workflow_success = %{
       "id" => workflow_success_uuid,
@@ -351,7 +351,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTaskTests do
     :meck.new(MonitorTask, [:passthrough])
     :meck.expect(MonitorTask, :create, fn _ -> :ok end)
 
-    {status, msg} = MonitorTask.check_status(mgr, component)
+    {status, msg} = MonitorTask.check_upgrade_status(mgr, component)
     assert status == :error
     assert msg != nil
   after
@@ -360,7 +360,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTaskTests do
     :meck.unload(MonitorTask)
   end
 
-  test "check_status - workflow not started, executed workflow" do
+  test "check_upgrade_status - workflow not started, executed workflow" do
     workflow_success_uuid = "#{UUID.uuid1()}" 
     workflow_success = %{
       "id" => workflow_success_uuid,
@@ -394,7 +394,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTaskTests do
     :meck.new(MonitorTask, [:passthrough])
     :meck.expect(MonitorTask, :create, fn _ -> :ok end)
     
-    {status, msg} = MonitorTask.check_status(mgr, component)
+    {status, msg} = MonitorTask.check_upgrade_status(mgr, component)
     assert status == :ok
     assert msg == :upgrade_in_progress
   after
@@ -403,7 +403,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTaskTests do
     :meck.unload(MonitorTask)
   end
 
-  test "check_status - workflow in progress" do
+  test "check_upgrade_status - workflow in progress" do
     workflow_success_uuid = "#{UUID.uuid1()}" 
     workflow_success = %{
       "id" => workflow_success_uuid,
@@ -436,7 +436,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTaskTests do
     :meck.new(MonitorTask, [:passthrough])
     :meck.expect(MonitorTask, :create, fn _ -> :ok end)
     
-    {status, msg} = MonitorTask.check_status(mgr, component)
+    {status, msg} = MonitorTask.check_upgrade_status(mgr, component)
     assert status == :ok
     assert msg == :upgrade_in_progress
   after
@@ -445,7 +445,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTaskTests do
     :meck.unload(ComponentStatusMgr)
   end
 
-  test "check_status - workflow has errored" do
+  test "check_upgrade_status - workflow has errored" do
     workflow_success_uuid = "#{UUID.uuid1()}" 
     workflow_success = %{
       "id" => workflow_success_uuid,
@@ -478,7 +478,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTaskTests do
     :meck.new(MonitorTask, [:passthrough])
     :meck.expect(MonitorTask, :create, fn _ -> :ok end)
     
-    {status, msg} = MonitorTask.check_status(mgr, component)
+    {status, msg} = MonitorTask.check_upgrade_status(mgr, component)
     assert status == :error
     assert msg != nil
   after
@@ -513,7 +513,8 @@ defmodule OpenAperture.Overseer.Components.MonitorTaskTests do
     component = %{
       "id" => "#{UUID.uuid1()}",
       "type" => "test",
-      "upgrade_status" => upgrade_status
+      "upgrade_status" => upgrade_status,
+      "status" => "upgrade_in_progress"
     }
 
     :meck.new(ComponentStatusMgr, [:passthrough])
@@ -554,7 +555,8 @@ defmodule OpenAperture.Overseer.Components.MonitorTaskTests do
     component = %{
       "id" => "#{UUID.uuid1()}",
       "type" => "test",
-      "upgrade_status" => upgrade_status
+      "upgrade_status" => upgrade_status,
+      "status" => "upgrade_in_progress"
     }
 
     :meck.new(ComponentStatusMgr, [:passthrough])
@@ -565,6 +567,47 @@ defmodule OpenAperture.Overseer.Components.MonitorTaskTests do
     :meck.expect(ComponentMgr, :save, fn _,_ -> component end)
     :meck.expect(ComponentMgr, :refresh, fn _ -> component end)
     :meck.expect(ComponentMgr, :set_task, fn _,_,_ -> :ok end)
+
+    MonitorTask.execute_monitoring(mgr)
+  after
+    :meck.unload(Workflow)
+    :meck.unload(ComponentStatusMgr)
+    :meck.unload(ComponentMgr)
+  end
+
+  test "execute_monitoring - upgrade completed" do
+    workflow_success_uuid = "#{UUID.uuid1()}" 
+    workflow_success = %{
+      "id" => workflow_success_uuid,
+      "workflow_completed" => true,
+      "workflow_error" => false,
+    }
+
+    :meck.new(Workflow, [:passthrough])
+    :meck.expect(Workflow, :get_workflow!, fn _, incoming_workflow_id -> 
+      cond do 
+        incoming_workflow_id == workflow_success_uuid -> workflow_success
+        true -> nil
+      end
+    end)
+
+    upgrade_status = %{
+      "workflows" => [workflow_success_uuid]
+    }
+
+    component = %{
+      "id" => "#{UUID.uuid1()}",
+      "type" => "test",
+      "upgrade_status" => upgrade_status,
+      "status" => "upgrade_completed"
+    }
+
+    :meck.new(ComponentStatusMgr, [:passthrough])
+    :meck.expect(ComponentStatusMgr, :start_link, fn _ -> {:ok, nil} end)
+
+    {:ok, mgr} = ComponentMgr.start_link(component)
+    :meck.new(ComponentMgr, [:passthrough])
+    :meck.expect(ComponentMgr, :refresh, fn _ -> component end)
 
     MonitorTask.execute_monitoring(mgr)
   after
