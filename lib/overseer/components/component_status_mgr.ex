@@ -70,6 +70,8 @@ defmodule OpenAperture.Overseer.Components.ComponentStatusMgr do
     cond do
       ComponentMgr.current_upgrade_task(state[:component_mgr]) != nil ->
         Logger.debug("#{@logprefix}[#{component["type"]}] Component #{type} is currently being upgraded")
+        #after 5 minutes, request another upgrade check (ensure the definition hasn't changed)
+        :timer.sleep(300000)
       component["status"] == "upgrade_in_progress" ->
         Logger.debug("#{@logprefix}[#{component["type"]}] Component #{type} is not currently being monitored, but an upgrade is in progress.  Requesting a MonitorTask...")
         #the component is being upgraded, ensure that we have some task running.  If not, start a Monitoring task

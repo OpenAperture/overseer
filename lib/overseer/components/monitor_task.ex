@@ -70,6 +70,13 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
           Logger.info("#{@logprefix}[#{component["type"]}] Upgrade monitoring task for type #{component["type"]} (#{component["id"]}) has completed in status #{inspect status}")
           
           #save status
+          upgrade_status = component["upgrade_status"]
+
+          component = Map.put(component, "source_repo", upgrade_status["target_source_repo"])
+          component = Map.put(component, "source_repo_git_ref", upgrade_status["target_source_repo_git_ref"])
+          component = Map.put(component, "deployment_repo", upgrade_status["target_deployment_repo"])
+          component = Map.put(component, "deployment_repo_git_ref", upgrade_status["target_deployment_repo_git_ref"])
+
           component = Map.put(component, "status", "upgrade_completed")
           component = Map.put(component, "upgrade_status", nil)
           component = ComponentMgr.save(mgr, component)
