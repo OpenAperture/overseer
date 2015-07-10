@@ -184,15 +184,15 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
   """
   @spec handle_call({:save, Map}, pid, Map) :: {:reply, Map, Map} 
   def handle_call({:save, updated_component}, _from, state) do
-    case SystemComponent.update_system_component!(ManagerApi.get_api, updated_component["id"], updated_component) do
-      nil ->
-        Logger.error("#{@logprefix}[#{updated_component["type"]}] Failed to save updated_component #{updated_component["id"]}!")
-        {:reply, state[:component], state}
-      _ ->
-        Logger.debug("#{@logprefix}[#{updated_component["type"]}] Successfully saved updated_component #{updated_component["id"]}")
-        state = Map.put(state, :component, updated_component)
-        state = Map.put(state, :updated_at, Time.now())
-        {:reply, updated_component, state} 
+    response = SystemComponent.update_system_component(ManagerApi.get_api, updated_component["id"], updated_component) 
+    if response.success? do
+      Logger.debug("#{@logprefix}[#{updated_component["type"]}] Successfully saved updated_component #{updated_component["id"]}")
+      state = Map.put(state, :component, updated_component)
+      state = Map.put(state, :updated_at, Time.now())
+      {:reply, updated_component, state} 
+    else      
+      Logger.error("#{@logprefix}[#{updated_component["type"]}] Failed to save updated_component #{updated_component["id"]}:  #{inspect response}")
+      {:reply, state[:component], state}
     end
   end
 

@@ -87,7 +87,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgrTests do
     :meck.expect(ComponentStatusMgr, :start_link, fn _ -> {:ok, nil} end)
 
     :meck.new(SystemComponent, [:passthrough])
-    :meck.expect(SystemComponent, :update_system_component!, fn _,_,_ -> nil end)
+    :meck.expect(SystemComponent, :update_system_component, fn _,_,_ -> %OpenAperture.ManagerApi.Response{status: 400, success?: false} end)
 
     component = %{
       "id" => "#{UUID.uuid1()}",
@@ -117,7 +117,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgrTests do
     }
 
     :meck.new(SystemComponent, [:passthrough])
-    :meck.expect(SystemComponent, :update_system_component!, fn _,_,_ -> :ok end)
+    :meck.expect(SystemComponent, :update_system_component, fn _,_,_ -> %OpenAperture.ManagerApi.Response{status: 200, success?: true} end)
 
     component = %{
       "id" => "#{UUID.uuid1()}",

@@ -156,8 +156,8 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
         upgrade_status = Map.put(upgrade_status, "workflows", workflows)
         upgrade_status = Map.put(upgrade_status, "target_source_repo", ref_component["source_repo"])
         upgrade_status = Map.put(upgrade_status, "target_source_repo_git_ref", ref_component["source_repo_git_ref"])
-        upgrade_status = Map.put(upgrade_status, "target_deployment_repo", ref_component["deployment_repo"])
-        upgrade_status = Map.put(upgrade_status, "target_deployment_repo_git_ref", ref_component["deployment_repo_git_ref"])
+        upgrade_status = Map.put(upgrade_status, "target_deployment_repo", component["deployment_repo"])
+        upgrade_status = Map.put(upgrade_status, "target_deployment_repo_git_ref", component["deployment_repo_git_ref"])
 
         component = Map.put(component, "status", "upgrade_in_progress")
         component = Map.put(component, "upgrade_status", upgrade_status)
