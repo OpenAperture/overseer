@@ -158,7 +158,11 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
         if upgrade_status == nil do
           upgrade_status = %{}
         end
+
+        first_workflow_id = List.first(workflows)
+
         upgrade_status = Map.put(upgrade_status, "workflows", workflows)
+        upgrade_status = Map.put(upgrade_status, "current_workflow", first_workflow_id)
         upgrade_status = Map.put(upgrade_status, "upgrade_start_time", "#{:httpd_util.rfc1123_date(:calendar.universal_time())}")
         upgrade_status = Map.put(upgrade_status, "failure_reason", "")
         upgrade_status = Map.put(upgrade_status, "target_source_repo", ref_component["source_repo"])
@@ -172,7 +176,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
         #save here so no other Overseer starts the upgrade
         component = ComponentMgr.save(mgr, component)
 
-        first_workflow_id = List.first(workflows)
+        
         #execute first workflow
         execute_options = %{
         }
