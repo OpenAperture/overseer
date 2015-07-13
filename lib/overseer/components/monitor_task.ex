@@ -87,6 +87,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
           #save status
           upgrade_status = component["upgrade_status"]
           upgrade_status = Map.put(upgrade_status, "current_workflow", current_workflow_id)
+          component = Map.put(component, "upgrade_status", upgrade_status)
           component = Map.put(component, "status", status)
 
           ComponentMgr.save(mgr, component)
