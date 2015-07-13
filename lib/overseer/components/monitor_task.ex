@@ -66,11 +66,12 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
       Logger.info("#{@logprefix}[#{component["type"]}] Component #{component["type"]} (#{component["id"]}) is not being upgraded (status is #{component["status"]}),  monitoring complete.")
     else
       case check_upgrade_status(mgr, component) do
-        {:ok, status} -> 
-          Logger.info("#{@logprefix}[#{component["type"]}] Upgrade monitoring task for type #{component["type"]} (#{component["id"]}) has completed in status #{inspect status}")
+        {:ok, :upgrade_completed} ->
+          Logger.info("#{@logprefix}[#{component["type"]}] Upgrade monitoring task for type #{component["type"]} (#{component["id"]}) has completed in status :upgrade_completed")
           
           #save status
           upgrade_status = component["upgrade_status"]
+          upgrade_status = Map.put(upgrade_status, "current_workflow", nil)
 
           component = Map.put(component, "source_repo", upgrade_status["target_source_repo"])
           component = Map.put(component, "source_repo_git_ref", upgrade_status["target_source_repo_git_ref"])
@@ -80,6 +81,15 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
           component = Map.put(component, "status", "upgrade_completed")
           component = Map.put(component, "upgrade_status", nil)
           component = ComponentMgr.save(mgr, component)
+        {:ok, status, current_workflow_id} ->
+          Logger.info("#{@logprefix}[#{component["type"]}] Upgrade monitoring task for type #{component["type"]} (#{component["id"]}) is in status #{status}")
+          
+          #save status
+          upgrade_status = component["upgrade_status"]
+          upgrade_status = Map.put(upgrade_status, "current_workflow", current_workflow_id)
+          component = Map.put(component, "status", status)
+
+          ComponentMgr.save(mgr, component)
         {:error, reason} ->
           Logger.error("#{@logprefix}[#{component["type"]}] Upgrade monitoring task for type #{component["type"]} (#{component["id"]}) has failed: #{inspect reason}")
           
@@ -128,13 +138,13 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
             
             #create another monitoring task
             MonitorTask.create(mgr)
-            {:ok, :upgrade_in_progress}
+            {:ok, :upgrade_in_progress, current_workflow["id"]}
         end
       #in-progress
       !current_workflow["workflow_completed"] ->
         #create another monitoring task
         MonitorTask.create(mgr)
-        {:ok, :upgrade_in_progress}
+        {:ok, :upgrade_in_progress, current_workflow["id"]}
 
       #completed in error
       current_workflow["workflow_error"] ->

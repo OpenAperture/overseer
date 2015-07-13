@@ -394,7 +394,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTaskTests do
     :meck.new(MonitorTask, [:passthrough])
     :meck.expect(MonitorTask, :create, fn _ -> :ok end)
     
-    {status, msg} = MonitorTask.check_upgrade_status(mgr, component)
+    {status, msg, workflow_id} = MonitorTask.check_upgrade_status(mgr, component)
     assert status == :ok
     assert msg == :upgrade_in_progress
   after
@@ -436,7 +436,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTaskTests do
     :meck.new(MonitorTask, [:passthrough])
     :meck.expect(MonitorTask, :create, fn _ -> :ok end)
     
-    {status, msg} = MonitorTask.check_upgrade_status(mgr, component)
+    {status, msg, workflow_id} = MonitorTask.check_upgrade_status(mgr, component)
     assert status == :ok
     assert msg == :upgrade_in_progress
   after
