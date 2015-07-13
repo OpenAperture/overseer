@@ -139,7 +139,8 @@ defmodule OpenAperture.Overseer.Components.ComponentMgrTests do
     :meck.expect(ComponentStatusMgr, :start_link, fn _ -> {:ok, nil} end)
 
     :meck.new(UpgradeTask, [:passthrough])
-    :meck.expect(UpgradeTask, :create, fn _ -> %{} end)
+    task = Task.async(fn -> :timer.sleep(1000) end)
+    :meck.expect(UpgradeTask, :create, fn _ -> task end)
 
     component = %{
       "id" => "#{UUID.uuid1()}",
@@ -148,7 +149,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgrTests do
     {:ok, mgr} = ComponentMgr.start_link(component)
 
     returned_task = ComponentMgr.request_upgrade(mgr)
-    assert returned_task == %{}
+    assert returned_task == task
   after
     :meck.unload(UpgradeTask)
     :meck.unload(ComponentStatusMgr)
@@ -163,10 +164,11 @@ defmodule OpenAperture.Overseer.Components.ComponentMgrTests do
       "type" => "test"
     }
     {:ok, mgr} = ComponentMgr.start_link(component)
-    ComponentMgr.set_task(mgr, :upgrade_task, %{})
+    task = Task.async(fn -> :timer.sleep(1000) end)
+    ComponentMgr.set_task(mgr, :upgrade_task, task)
 
     returned_task = ComponentMgr.request_upgrade(mgr)
-    assert returned_task == %{}
+    assert returned_task == task
   after
     :meck.unload(ComponentStatusMgr)
   end
@@ -180,10 +182,11 @@ defmodule OpenAperture.Overseer.Components.ComponentMgrTests do
       "type" => "test"
     }
     {:ok, mgr} = ComponentMgr.start_link(component)
-    ComponentMgr.set_task(mgr, :monitoring_task, %{})
+    task = Task.async(fn -> :timer.sleep(1000) end)
+    ComponentMgr.set_task(mgr, :monitoring_task, task)
 
     returned_task = ComponentMgr.request_upgrade(mgr)
-    assert returned_task == %{}
+    assert returned_task == task
   after
     :meck.unload(ComponentStatusMgr)
   end
@@ -200,10 +203,12 @@ defmodule OpenAperture.Overseer.Components.ComponentMgrTests do
       "type" => "test"
     }
     {:ok, mgr} = ComponentMgr.start_link(component)
-    ComponentMgr.set_task(mgr, :monitoring_task, %{})
+    task = Task.async(fn -> :timer.sleep(1000) end)
+    ComponentMgr.set_task(mgr, :monitoring_task, task)
 
     returned_task = ComponentMgr.request_upgrade(mgr)
-    assert returned_task == %{}
+
+    assert returned_task == task
   after
     :meck.unload(ComponentStatusMgr)
   end
@@ -236,10 +241,11 @@ defmodule OpenAperture.Overseer.Components.ComponentMgrTests do
       "type" => "test"
     }
     {:ok, mgr} = ComponentMgr.start_link(component)
-    ComponentMgr.set_task(mgr, :upgrade_task, %{})
+    task = Task.async(fn -> :timer.sleep(1000) end)
+    ComponentMgr.set_task(mgr, :upgrade_task, task)
 
     returned_task = ComponentMgr.current_upgrade_task(mgr)
-    assert returned_task != nil
+    assert returned_task == task
   after
     :meck.unload(ComponentStatusMgr)
   end
@@ -253,10 +259,11 @@ defmodule OpenAperture.Overseer.Components.ComponentMgrTests do
       "type" => "test"
     }
     {:ok, mgr} = ComponentMgr.start_link(component)
-    ComponentMgr.set_task(mgr, :monitoring_task, %{})
+    task = Task.async(fn -> :timer.sleep(1000) end)
+    ComponentMgr.set_task(mgr, :monitoring_task, task)
 
     returned_task = ComponentMgr.current_upgrade_task(mgr)
-    assert returned_task != nil
+    assert returned_task == task
   after
     :meck.unload(ComponentStatusMgr)
   end
@@ -270,11 +277,13 @@ defmodule OpenAperture.Overseer.Components.ComponentMgrTests do
       "type" => "test"
     }
     {:ok, mgr} = ComponentMgr.start_link(component)
-    ComponentMgr.set_task(mgr, :upgrade_task, %{})
-    ComponentMgr.set_task(mgr, :monitoring_task, %{test: ""})
+    ComponentMgr.set_task(mgr, :upgrade_task, Task.async(fn -> end))
+
+    monitor_task = Task.async(fn -> :timer.sleep(1000) end)
+    ComponentMgr.set_task(mgr, :monitoring_task, monitor_task)
 
     returned_task = ComponentMgr.current_upgrade_task(mgr)
-    assert returned_task == %{test: ""}
+    assert returned_task == monitor_task
   after
     :meck.unload(ComponentStatusMgr)
   end

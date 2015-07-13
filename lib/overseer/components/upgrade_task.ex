@@ -154,6 +154,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
           upgrade_status = %{}
         end
         upgrade_status = Map.put(upgrade_status, "workflows", workflows)
+        upgrade_status = Map.put(upgrade_status, "upgrade_start_time", "#{:httpd_util.rfc1123_date(:calendar.universal_time())}")
         upgrade_status = Map.put(upgrade_status, "failure_reason", "")
         upgrade_status = Map.put(upgrade_status, "target_source_repo", ref_component["source_repo"])
         upgrade_status = Map.put(upgrade_status, "target_source_repo_git_ref", ref_component["source_repo_git_ref"])

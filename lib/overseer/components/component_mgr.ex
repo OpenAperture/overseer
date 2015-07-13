@@ -238,6 +238,17 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
   """
   @spec handle_call({:request_upgrade}, pid, Map) :: {:reply, Task, Map}
   def handle_call({:request_upgrade}, _from, state) do
+
+    if state[:upgrade_task] != nil && !Process.alive?(state[:upgrade_task].pid) do
+      Logger.debug("#{@logprefix}[#{state[:component]["type"]}] A zombie UpgradeTask has been found for #{state[:component]["id"]}; clearing saved UpgradeTask")
+      state = Map.put(state, :upgrade_task, nil)
+    end
+
+    if state[:monitoring_task] != nil && !Process.alive?(state[:monitoring_task].pid) do
+      Logger.debug("#{@logprefix}[#{state[:component]["type"]}] A zombie MonitoringTask has been found for #{state[:component]["id"]}; clearing saved MonitoringTask")
+      state = Map.put(state, :monitoring_task, nil)        
+    end
+
     task = cond do
       state[:monitoring_task] != nil -> 
         Logger.debug("#{@logprefix}[#{state[:component]["type"]}] An upgrade has been requested for component #{state[:component]["id"]}; upgrade is currently being monitored.")
