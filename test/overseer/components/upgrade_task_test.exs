@@ -178,7 +178,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTaskTests do
     :meck.new(SystemComponentRef, [:passthrough])
     :meck.expect(SystemComponentRef, :get_system_component_ref!, fn _,_ -> nil end)
 
-    {result, reason} = UpgradeTask.eligible_for_upgrade?(component)
+    {result, reason, returned_ref_component} = UpgradeTask.eligible_for_upgrade?(component)
     assert result == false
     assert String.contains?(reason, "SystemComponentRef for type")
   after
@@ -197,7 +197,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTaskTests do
     :meck.new(SystemComponentRef, [:passthrough])
     :meck.expect(SystemComponentRef, :get_system_component_ref!, fn _,_ -> ref_component end)
 
-    {result, reason} = UpgradeTask.eligible_for_upgrade?(component)
+    {result, reason, returned_ref_component} = UpgradeTask.eligible_for_upgrade?(component)
     assert result == false
     assert String.contains?(reason, "An upgrade is already in progress")
   after
@@ -216,7 +216,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTaskTests do
     :meck.new(SystemComponentRef, [:passthrough])
     :meck.expect(SystemComponentRef, :get_system_component_ref!, fn _,_ -> ref_component end)
 
-    {result, reason} = UpgradeTask.eligible_for_upgrade?(component)
+    {result, reason, returned_ref_component} = UpgradeTask.eligible_for_upgrade?(component)
     assert result == false
     assert String.contains?(reason, "defined upgrade strategy for component")
   after
@@ -236,7 +236,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTaskTests do
     :meck.new(SystemComponentRef, [:passthrough])
     :meck.expect(SystemComponentRef, :get_system_component_ref!, fn _,_ -> ref_component end)
 
-    {result, reason} = UpgradeTask.eligible_for_upgrade?(component)
+    {result, reason, returned_ref_component} = UpgradeTask.eligible_for_upgrade?(component)
     assert result == false
     assert String.contains?(reason, "The defined upgrade strategy for")
   after
@@ -256,7 +256,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTaskTests do
     :meck.new(SystemComponentRef, [:passthrough])
     :meck.expect(SystemComponentRef, :get_system_component_ref!, fn _,_ -> ref_component end)
 
-    {result, reason} = UpgradeTask.eligible_for_upgrade?(component)
+    {result, reason, returned_ref_component} = UpgradeTask.eligible_for_upgrade?(component)
     assert result == false
     assert String.contains?(reason, "deployment_repo")
   after
@@ -277,7 +277,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTaskTests do
     :meck.new(SystemComponentRef, [:passthrough])
     :meck.expect(SystemComponentRef, :get_system_component_ref!, fn _,_ -> ref_component end)
 
-    {result, reason} = UpgradeTask.eligible_for_upgrade?(component)
+    {result, reason, returned_ref_component} = UpgradeTask.eligible_for_upgrade?(component)
     assert result == false
     assert String.contains?(reason, "deployment_repo_git_ref")
   after
@@ -299,7 +299,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTaskTests do
     :meck.new(SystemComponentRef, [:passthrough])
     :meck.expect(SystemComponentRef, :get_system_component_ref!, fn _,_ -> ref_component end)
 
-    {result, reason} = UpgradeTask.eligible_for_upgrade?(component)
+    {result, reason, returned_ref_component} = UpgradeTask.eligible_for_upgrade?(component)
     assert result == false
     assert String.contains?(reason, "has been disabled")
   after
@@ -322,7 +322,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTaskTests do
     :meck.new(SystemComponentRef, [:passthrough])
     :meck.expect(SystemComponentRef, :get_system_component_ref!, fn _,_ -> ref_component end)
 
-    {result, reason} = UpgradeTask.eligible_for_upgrade?(component)
+    {result, reason, returned_ref_component} = UpgradeTask.eligible_for_upgrade?(component)
     assert result == false
     assert String.contains?(reason, "has been disabled")
   after
@@ -345,7 +345,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTaskTests do
     :meck.new(SystemComponentRef, [:passthrough])
     :meck.expect(SystemComponentRef, :get_system_component_ref!, fn _,_ -> ref_component end)
 
-    {result, reason} = UpgradeTask.eligible_for_upgrade?(component)
+    {result, reason, returned_ref_component} = UpgradeTask.eligible_for_upgrade?(component)
     assert result == false
     assert String.contains?(reason, "source_repo")
   after
@@ -369,7 +369,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTaskTests do
     :meck.new(SystemComponentRef, [:passthrough])
     :meck.expect(SystemComponentRef, :get_system_component_ref!, fn _,_ -> ref_component end)
 
-    {result, reason} = UpgradeTask.eligible_for_upgrade?(component)
+    {result, reason, ref_component} = UpgradeTask.eligible_for_upgrade?(component)
     assert result == false
     assert String.contains?(reason, "source_repo_git_ref")
   after
@@ -396,7 +396,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTaskTests do
     :meck.new(SystemComponentRef, [:passthrough])
     :meck.expect(SystemComponentRef, :get_system_component_ref!, fn _,_ -> ref_component end)
 
-    {result, reason} = UpgradeTask.eligible_for_upgrade?(component)
+    {result, reason, returned_ref_component} = UpgradeTask.eligible_for_upgrade?(component)
     assert result == false
     assert String.contains?(reason, "is already running the latest")
   after

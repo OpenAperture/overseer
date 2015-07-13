@@ -54,7 +54,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
 
     Logger.debug("#{@logprefix}[#{component["type"]}] An upgrade has been request for component #{type}, ensuring eligibility...")
     case eligible_for_upgrade?(component) do
-      {false, reason} ->
+      {false, reason, ref_component} ->
         Logger.debug("#{@logprefix}[#{component["type"]}] Component #{type} is not eligible for upgrade:  #{inspect reason}")
         component = ComponentMgr.component(mgr)
         upgrade_status = component["upgrade_status"]
@@ -62,6 +62,11 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
         upgrade_status = Map.put(upgrade_status, "failure_reason", "Component #{type} is not eligible for upgrade:  #{inspect reason}")
         component = Map.put(component, "status", "ineligible_for_upgrade")
         component = Map.put(component, "upgrade_status", upgrade_status)
+
+        if ref_component != nil do
+          component = Map.put(component, "source_repo", ref_component["source_repo"])
+          component = Map.put(component, "source_repo_git_ref", ref_component["source_repo_git_ref"])
+        end
 
         ComponentMgr.save(mgr, component)
       {true, ref_component} ->
@@ -95,33 +100,33 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
 
   ## Return Value
 
-  {true, SystemComponentRef} | {false, reason}
+  {true, SystemComponentRef} | {false, reason, SystemComponentRef}
   """
-  @spec eligible_for_upgrade?(Map) :: {true, Map} | {false, term}
+  @spec eligible_for_upgrade?(Map) :: {true, Map} | {false, term, Map}
   def eligible_for_upgrade?(component) do
     type = component["type"]
     case SystemComponentRef.get_system_component_ref!(ManagerApi.get_api, type) do
-      nil -> {false, "An error occurred retrieving SystemComponentRef for type #{type}!"}
+      nil -> {false, "An error occurred retrieving SystemComponentRef for type #{type}!", nil}
       ref_component ->
         cond do
           component["status"] == "upgrade_in_progress" ->
-            {false, "An upgrade is already in progress for component #{component["type"]}"}
+            {false, "An upgrade is already in progress for component #{component["type"]}", ref_component}
           component["upgrade_strategy"] == nil || component["upgrade_strategy"] == "manual" ->
-            {false, "The defined upgrade strategy for component #{component["type"]} is not automatic:  #{inspect component["upgrade_strategy"]}"}
+            {false, "The defined upgrade strategy for component #{component["type"]} is not automatic:  #{inspect component["upgrade_strategy"]}", ref_component}
           component["deployment_repo"] == nil || String.length(component["deployment_repo"]) == 0 ->
-            {false, "deployment_repo for SystemComponent of type #{type} is invalid.  No upgrade will occur."}
+            {false, "deployment_repo for SystemComponent of type #{type} is invalid.  No upgrade will occur.", ref_component}
           component["deployment_repo_git_ref"] == nil || String.length(component["deployment_repo_git_ref"]) == 0 ->
-            {false, "deployment_repo_git_ref for SystemComponent of type #{type} is invalid.  No upgrade will occur."}
+            {false, "deployment_repo_git_ref for SystemComponent of type #{type} is invalid.  No upgrade will occur.", ref_component}
           ref_component["auto_upgrade_enabled"] != true ->
-            {false, "Automatic upgrades for SystemComponentRef of type #{type} has been disabled.  No upgrade will occur."}
+            {false, "Automatic upgrades for SystemComponentRef of type #{type} has been disabled.  No upgrade will occur.", ref_component}
           ref_component["source_repo"] == nil || String.length(ref_component["source_repo"]) == 0 ->
-            {false, "source_repo for SystemComponentRef of type #{type} is invalid.  No upgrade will occur."}
+            {false, "source_repo for SystemComponentRef of type #{type} is invalid.  No upgrade will occur.", ref_component}
           ref_component["source_repo_git_ref"] == nil || String.length(ref_component["source_repo_git_ref"]) == 0 ->
-            {false, "source_repo_git_ref for SystemComponentRef of type #{type} is invalid.  No upgrade will occur."}
+            {false, "source_repo_git_ref for SystemComponentRef of type #{type} is invalid.  No upgrade will occur.", ref_component}
           #check if any of the values are different, if so we need to upgrade
           ref_component["source_repo"] != component["source_repo"] ||
           ref_component["source_repo_git_ref"] != component["source_repo_git_ref"] -> {true, ref_component}
-          true -> {false, "SystemComponent #{component["type"]} is already running the latest.  No upgrade will occur "}
+          true -> {false, "SystemComponent #{component["type"]} is already running the latest.  No upgrade will occur.", ref_component}
         end
     end
   end
