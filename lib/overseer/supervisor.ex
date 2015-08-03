@@ -50,6 +50,7 @@ defmodule OpenAperture.Overseer.Supervisor do
       worker(OpenAperture.Overseer.Modules.Manager, []),
       worker(OpenAperture.Overseer.Modules.Listener, []),
       worker(OpenAperture.Overseer.Components.ComponentsMgr, []),
+      worker(OpenAperture.Overseer.FleetManagerPublisher, []),
       worker(OpenAperture.Overseer.Clusters.ClustersMonitor, [])
     ]
 

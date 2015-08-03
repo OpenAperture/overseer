@@ -9,7 +9,7 @@ defmodule OpenAperture.Overseer.FleetManagerPublisher do
   alias OpenAperture.ManagerApi
   alias OpenAperture.Messaging.RpcRequest
 
-  alias OpenAperture.Manager.Configuration
+  alias OpenAperture.Overseer.Configuration
 
   @moduledoc """
   This module contains the GenServer for publishing RPC messages to the FleetManager
