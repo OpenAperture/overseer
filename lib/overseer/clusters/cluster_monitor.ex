@@ -152,6 +152,8 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
   def monitor_host([returned_hostname | remaining_hostnames], node_info) do
     info = node_info[returned_hostname]
 
+    Logger.debug("Evaluating hostname #{returned_hostname} in node_info #{inspect node_info}")
+
     event = cond do 
       info[:docker_disk_space_percent] == nil -> %{
         type: :docker_disk_space_percent, 
