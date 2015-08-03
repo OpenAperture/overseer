@@ -155,23 +155,23 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
     Logger.debug("Evaluating hostname #{returned_hostname} in node_info #{inspect node_info}")
 
     event = cond do 
-      info[:docker_disk_space_percent] == nil -> %{
+      info["docker_disk_space_percent"] == nil -> %{
         type: :docker_disk_space_percent, 
           severity: :error, 
           data: %{docker_disk_space_percent: nil},
           message: "Host #{returned_hostname} is not reporting the Docker disk space %!"
         }
-      info[:docker_disk_space_percent] > 90 -> %{
+      info["docker_disk_space_percent"] > 90 -> %{
         type: :docker_disk_space_percent, 
           severity: :error, 
-          data: %{docker_disk_space_percent: info[:docker_disk_space_percent]},
-          message: "Host #{returned_hostname} is reporting a Docker disk space of #{info[:docker_disk_space_percent]}%!"
+          data: %{docker_disk_space_percent: info["docker_disk_space_percent"]},
+          message: "Host #{returned_hostname} is reporting a Docker disk space of #{info["docker_disk_space_percent"]}%!"
         }        
-      info[:docker_disk_space_percent] > 80 -> %{
+      info["docker_disk_space_percent"] > 80 -> %{
         type: :docker_disk_space_percent, 
           severity: :warning, 
-          data: %{docker_disk_space_percent: info[:docker_disk_space_percent]},
-          message: "Host #{returned_hostname} is reporting a Docker disk space of #{info[:docker_disk_space_percent]}%!"
+          data: %{docker_disk_space_percent: info["docker_disk_space_percent"]},
+          message: "Host #{returned_hostname} is reporting a Docker disk space of #{info["docker_disk_space_percent"]}%!"
         } 
       true -> nil        
     end

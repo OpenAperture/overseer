@@ -43,7 +43,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitorTests do
 
     hostname = "#{UUID.uuid1()}"
     node_info = %{}
-    node_info = Map.put(node_info, hostname, %{docker_disk_space_percent: 50})
+    node_info = Map.put(node_info, hostname, %{"docker_disk_space_percent" => 50})
 
     ClusterMonitor.monitor_host(Map.keys(node_info), node_info)
   end
@@ -53,7 +53,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitorTests do
 
     hostname = "#{UUID.uuid1()}"
     node_info = %{}
-    node_info = Map.put(node_info, hostname, %{docker_disk_space_percent: 85})
+    node_info = Map.put(node_info, hostname, %{"docker_disk_space_percent" => 85})
 
     ClusterMonitor.monitor_host(Map.keys(node_info), node_info)
   end  
@@ -63,7 +63,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitorTests do
 
     hostname = "#{UUID.uuid1()}"
     node_info = %{}
-    node_info = Map.put(node_info, hostname, %{docker_disk_space_percent: 95})
+    node_info = Map.put(node_info, hostname, %{"docker_disk_space_percent" => 95})
 
     ClusterMonitor.monitor_host(Map.keys(node_info), node_info)
   end 
@@ -79,7 +79,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitorTests do
 
     hostname = "#{UUID.uuid1()}"
     node_info = %{}
-    node_info = Map.put(node_info, hostname, %{docker_disk_space_percent: 95})
+    node_info = Map.put(node_info, hostname, %{"docker_disk_space_percent" => 95})
 
     hosts = [%{"primaryIP" => hostname}]
 
@@ -96,7 +96,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitorTests do
 
     hostname = "#{UUID.uuid1()}"
     node_info = %{}
-    node_info = Map.put(node_info, hostname, %{docker_disk_space_percent: 95})
+    node_info = Map.put(node_info, hostname, %{"docker_disk_space_percent" => 95})
 
     hosts = [%{"primaryIP" => hostname}]
 
@@ -110,7 +110,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitorTests do
 
     hostname = "#{UUID.uuid1()}"
     node_info = %{}
-    node_info = Map.put(node_info, hostname, %{docker_disk_space_percent: 30})
+    node_info = Map.put(node_info, hostname, %{"docker_disk_space_percent" => 30})
 
     :meck.expect(FleetManagerPublisher, :node_info!, fn _,_ -> %{} end)
     :meck.expect(RpcHandler, :get_response, fn _ -> {:ok, node_info} end)
@@ -134,7 +134,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitorTests do
 
     hostname = "#{UUID.uuid1()}"
     node_info = %{}
-    node_info = Map.put(node_info, hostname, %{docker_disk_space_percent: 95})
+    node_info = Map.put(node_info, hostname, %{"docker_disk_space_percent" => 95})
 
     hosts = [%{"primaryIP" => hostname}]
 
@@ -152,7 +152,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitorTests do
 
     hostname = "#{UUID.uuid1()}"
     node_info = %{}
-    node_info = Map.put(node_info, hostname, %{docker_disk_space_percent: 95})
+    node_info = Map.put(node_info, hostname, %{"docker_disk_space_percent" => 95})
 
     hosts = [%{"primaryIP" => hostname}]
 
@@ -170,7 +170,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitorTests do
 
     hostname = "#{UUID.uuid1()}"
     node_info = %{}
-    node_info = Map.put(node_info, hostname, %{docker_disk_space_percent: 95})
+    node_info = Map.put(node_info, hostname, %{"docker_disk_space_percent" => 95})
 
     hosts = [%{"primaryIP" => hostname}]
 
@@ -184,7 +184,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitorTests do
 
     hostname = "#{UUID.uuid1()}"
     node_info = %{}
-    node_info = Map.put(node_info, hostname, %{docker_disk_space_percent: 95})
+    node_info = Map.put(node_info, hostname, %{"docker_disk_space_percent" => 95})
 
     hosts = [%{"primaryIP" => hostname}]
 
