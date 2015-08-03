@@ -49,7 +49,8 @@ defmodule OpenAperture.Overseer.Supervisor do
       worker(OpenAperture.Overseer.Modules.Retriever, []),
       worker(OpenAperture.Overseer.Modules.Manager, []),
       worker(OpenAperture.Overseer.Modules.Listener, []),
-      worker(OpenAperture.Overseer.Components.ComponentsMgr, [])
+      worker(OpenAperture.Overseer.Components.ComponentsMgr, []),
+      worker(OpenAperture.Overseer.Clusters.ClustersMonitor, [])
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__]

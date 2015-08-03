@@ -20,7 +20,8 @@ config :autostart,
 	retrieve_modules: false,
 	start_listening: false,
 	component_mgr: false,
-	resolve_system_components: false
+	resolve_system_components: false,
+	clusters_monitor: false
 
 config :openaperture_manager_api, 
 	manager_url: System.get_env("MANAGER_URL") || "https://openaperture-mgr.host.co",

@@ -14,7 +14,13 @@ defmodule OpenAperture.Overseer.Mixfile do
   def application do
     [
       mod: { OpenAperture.Overseer, [] },
-      applications: [:logger, :openaperture_messaging, :openaperture_manager_api, :openaperture_overseer_api]
+      applications: 
+      [
+        :logger, 
+        :openaperture_messaging, 
+        :openaperture_manager_api, 
+        :openaperture_overseer_api
+      ]
     ]
   end
 
@@ -35,7 +41,7 @@ defmodule OpenAperture.Overseer.Mixfile do
       {:poison, "~> 1.4.0", override: true},
       {:timex, "~> 0.13.3", override: true},
       {:openaperture_messaging, git: "https://github.com/OpenAperture/messaging.git", ref: "e48c52b98abc86f4404954e7b4c85b090e83c69c", override: true},
-      {:openaperture_manager_api, git: "https://github.com/OpenAperture/manager_api.git", ref: "84eedf15d805e6a827b3d62978b5a20244c99094", override: true},
+      {:openaperture_manager_api, git: "https://github.com/OpenAperture/manager_api.git", ref: "b9542dde7da3c892af569c4fc3f7f00e4f94cf55", override: true},
       {:openaperture_overseer_api, git: "https://github.com/OpenAperture/overseer_api.git", ref: "6993e014773e2c16e379eb85a77f3faaa273d0e1", override: true},
       {:openaperture_workflow_orchestrator_api, git: "https://github.com/OpenAperture/workflow_orchestrator_api.git", ref: "9104035464efda2fadb2eec0297ca9cb2495158f", override: true},
       {:timex_extensions, git: "https://github.com/OpenAperture/timex_extensions.git", ref: "1665c1df90397702daf492c6f940e644085016cd", override: true},
