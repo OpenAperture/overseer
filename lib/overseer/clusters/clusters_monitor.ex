@@ -54,7 +54,7 @@ defmodule OpenAperture.Overseer.Clusters.ClustersMonitor do
     if sleep_seconds < 60 do
       sleep_seconds = 60
     end
-    Logger.debug("[Retriever] Sleeping for #{sleep_seconds} seconds before reviewing clusters...")
+    Logger.debug("[#{@logprefix} Sleeping for #{sleep_seconds} seconds before reviewing clusters...")
     :timer.sleep(sleep_seconds * 1000)
 
     updated_state = monitor_clusters(state)
@@ -127,7 +127,7 @@ defmodule OpenAperture.Overseer.Clusters.ClustersMonitor do
     if state[:clusters][cluster["etcd_token"]] == nil do
       case ClusterMonitor.start_link(cluster) do
         {:ok, monitor} -> 
-          Logger.debug("Starting a new monitor for cluster #{cluster["etcd_token"]}")
+          Logger.debug("#{@logprefix} Starting a new monitor for cluster #{cluster["etcd_token"]}")
           cluster_cache = state[:clusters]
           cluster_cache = Map.put(cluster_cache, cluster["etcd_token"], monitor)
           Map.put(state, :clusters, cluster_cache)
@@ -136,7 +136,7 @@ defmodule OpenAperture.Overseer.Clusters.ClustersMonitor do
           state
       end
     else
-      Logger.debug("A monitor already exists for cluster #{cluster["etcd_token"]}")
+      Logger.debug("#{@logprefix} A monitor already exists for cluster #{cluster["etcd_token"]}")
       state
     end  
   end
@@ -164,10 +164,10 @@ defmodule OpenAperture.Overseer.Clusters.ClustersMonitor do
       Enum.reduce clusters, state, fn etcd_token, updated_state ->
         monitor = updated_state[:clusters][etcd_token]
         if monitor != nil do
-          Logger.info("Stopping monitor for cluster #{etcd_token}")
+          Logger.info("#{@logprefix} Stopping monitor for cluster #{etcd_token}")
           Process.exit(monitor, :normal)
         else
-          Logger.error("Failed to stop monitor for cluster #{etcd_token} - monitor does not exist!")
+          Logger.error("#{@logprefix} Failed to stop monitor for cluster #{etcd_token} - monitor does not exist!")
         end
         cached_clusters = Map.delete(updated_state[:clusters], etcd_token)
         Map.put(updated_state, :clusters, cached_clusters)

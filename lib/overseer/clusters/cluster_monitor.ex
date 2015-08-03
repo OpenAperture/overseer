@@ -177,6 +177,8 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
     if event != nil do
       Logger.error("#{@logprefix} A system event was generated for #{returned_hostname}:  #{inspect event}")
       SystemEvent.create_system_event!(ManagerApi.get_api, event)
+    else
+      Logger.debug("#{@logprefix} Host #{returned_hostname} is running as expected")
     end
 
     monitor_host(remaining_hostnames, node_info)
