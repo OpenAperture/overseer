@@ -121,7 +121,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
     case RpcHandler.get_response(handler) do
       {:error, reason} -> Logger.error("#{@logprefix}[#{etcd_token}] Received the following error retrieving node_info:  #{inspect reason}")
       {:ok, nil} -> Logger.error("#{@logprefix}[#{etcd_token}] No node_info was returned!")
-      {:ok, node_info} -> monitor_host(Map.keys(node_info), node_info)
+      {:ok, node_info} -> monitor_host(Map.keys(node_info), node_info, etcd_token)
     end 
   end
 
@@ -133,8 +133,8 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
   The `node_info` option defines the Map of all host information
 
   """
-  @spec monitor_host([], Map) :: term
-  def monitor_host([], _node_info) do
+  @spec monitor_host([], Map, String.t) :: term
+  def monitor_host([], _node_info, _etcd_token) do
     Logger.debug("Finished reviewing node_info") 
   end
 
@@ -148,8 +148,8 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
   The `node_info` option defines the Map of all host information
   
   """
-  @spec monitor_host(List, Map) :: term
-  def monitor_host([returned_hostname | remaining_hostnames], node_info) do
+  @spec monitor_host(List, Map, String.t) :: term
+  def monitor_host([returned_hostname | remaining_hostnames], node_info, etcd_token) do
     info = node_info[returned_hostname]
 
     Logger.debug("Evaluating hostname #{returned_hostname} in node_info #{inspect node_info}")
@@ -158,20 +158,32 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
       info["docker_disk_space_percent"] == nil -> %{
         type: :docker_disk_space_percent, 
           severity: :error, 
-          data: %{docker_disk_space_percent: nil},
-          message: "Host #{returned_hostname} is not reporting the Docker disk space %!"
+          data: %{
+            docker_disk_space_percent: nil,
+            hostname: returned_hostname,
+            etcd_token: etcd_token
+          },
+          message: "Host #{returned_hostname} is not reporting the Docker disk space utilization %!"
         }
       info["docker_disk_space_percent"] > 90 -> %{
         type: :docker_disk_space_percent, 
           severity: :error, 
-          data: %{docker_disk_space_percent: info["docker_disk_space_percent"]},
-          message: "Host #{returned_hostname} is reporting a Docker disk space of #{info["docker_disk_space_percent"]}%!"
+          data: %{
+            docker_disk_space_percent: info["docker_disk_space_percent"],
+            hostname: returned_hostname,
+            etcd_token: etcd_token
+          },
+          message: "Host #{returned_hostname} is reporting a Docker disk space utilization of #{info["docker_disk_space_percent"]}%!"
         }        
       info["docker_disk_space_percent"] > 80 -> %{
         type: :docker_disk_space_percent, 
           severity: :warning, 
-          data: %{docker_disk_space_percent: info["docker_disk_space_percent"]},
-          message: "Host #{returned_hostname} is reporting a Docker disk space of #{info["docker_disk_space_percent"]}%!"
+          data: %{
+            docker_disk_space_percent: info["docker_disk_space_percent"],
+            hostname: returned_hostname,
+            etcd_token: etcd_token
+          },
+          message: "Host #{returned_hostname} is reporting a Docker disk space utilization of #{info["docker_disk_space_percent"]}%!"
         } 
       true -> nil        
     end
@@ -183,6 +195,6 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
       Logger.debug("#{@logprefix} Host #{returned_hostname} is running as expected")
     end
 
-    monitor_host(remaining_hostnames, node_info)
+    monitor_host(remaining_hostnames, node_info, etcd_token)
   end
 end

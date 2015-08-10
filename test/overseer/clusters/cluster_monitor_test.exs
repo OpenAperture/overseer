@@ -26,7 +26,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitorTests do
   # monitor_host tests
 
   test "monitor_host - empty list" do
-    ClusterMonitor.monitor_host([], %{})
+    ClusterMonitor.monitor_host([], %{}, "#{UUID.uuid1()}")
   end
 
   test "monitor_host - docker_disk_space_percent missing" do
@@ -36,7 +36,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitorTests do
     node_info = %{}
     node_info = Map.put(node_info, hostname, %{})
 
-    ClusterMonitor.monitor_host(Map.keys(node_info), node_info)
+    ClusterMonitor.monitor_host(Map.keys(node_info), node_info, "#{UUID.uuid1()}")
   end
 
   test "monitor_host - docker_disk_space_percent ok" do
@@ -45,7 +45,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitorTests do
     node_info = %{}
     node_info = Map.put(node_info, hostname, %{"docker_disk_space_percent" => 50})
 
-    ClusterMonitor.monitor_host(Map.keys(node_info), node_info)
+    ClusterMonitor.monitor_host(Map.keys(node_info), node_info, "#{UUID.uuid1()}")
   end
 
   test "monitor_host - docker_disk_space_percent warning" do
@@ -55,7 +55,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitorTests do
     node_info = %{}
     node_info = Map.put(node_info, hostname, %{"docker_disk_space_percent" => 85})
 
-    ClusterMonitor.monitor_host(Map.keys(node_info), node_info)
+    ClusterMonitor.monitor_host(Map.keys(node_info), node_info, "#{UUID.uuid1()}")
   end  
 
   test "monitor_host - docker_disk_space_percent error" do
@@ -65,7 +65,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitorTests do
     node_info = %{}
     node_info = Map.put(node_info, hostname, %{"docker_disk_space_percent" => 95})
 
-    ClusterMonitor.monitor_host(Map.keys(node_info), node_info)
+    ClusterMonitor.monitor_host(Map.keys(node_info), node_info, "#{UUID.uuid1()}")
   end 
 
   # ===================================
