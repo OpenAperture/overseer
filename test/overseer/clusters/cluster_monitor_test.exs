@@ -202,4 +202,58 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitorTests do
 
     ClusterMonitor.monitor_cluster(etcd_token)
   end
+
+  # ===================================
+  # monitor_cluster_units tests
+
+  test "monitor_cluster_units - nil units" do
+    :meck.expect(SystemEvent, :create_system_event!, fn _,_ -> :ok end)
+    :meck.expect(FleetManagerPublisher, :list_unit_states!, fn _,_ -> :units end)
+    :meck.expect(RpcHandler, :get_response, fn type -> 
+      {:ok, nil}
+    end)
+
+    :meck.expect(SystemEvent, :create_system_event!, fn _,_ -> :ok end)
+
+    ClusterMonitor.monitor_cluster_units("#{UUID.uuid1()}")
+  end
+
+  test "monitor_cluster_units - empty units" do
+    :meck.expect(SystemEvent, :create_system_event!, fn _,_ -> :ok end)
+    :meck.expect(FleetManagerPublisher, :list_unit_states!, fn _,_ -> :units end)
+    :meck.expect(RpcHandler, :get_response, fn type -> 
+      {:ok, []}
+    end)
+
+    :meck.expect(SystemEvent, :create_system_event!, fn _,_ -> :ok end)
+
+    ClusterMonitor.monitor_cluster_units("#{UUID.uuid1()}")
+  end
+
+  test "monitor_cluster_units - units" do
+    :meck.expect(SystemEvent, :create_system_event!, fn _,_ -> :ok end)
+    :meck.expect(FleetManagerPublisher, :list_unit_states!, fn _,_ -> :units end)
+    :meck.expect(RpcHandler, :get_response, fn type -> 
+      {:ok, [%{"systemdActiveState" => "active"}]}
+    end)
+
+    ClusterMonitor.monitor_cluster_units("#{UUID.uuid1()}")
+  end
+
+  # ===================================
+  # monitor_units tests
+
+  test "monitor_units - empty" do
+    ClusterMonitor.monitor_units([], "#{UUID.uuid1()}")
+  end
+
+  test "monitor_units - active unit" do
+    ClusterMonitor.monitor_units([%{"systemdActiveState" => "active"}], "#{UUID.uuid1()}")
+  end
+
+  test "monitor_units - failed unit" do
+    :meck.expect(SystemEvent, :create_system_event!, fn _,_ -> :ok end)
+        
+    ClusterMonitor.monitor_units([%{"systemdActiveState" => "failed"}], "#{UUID.uuid1()}")
+  end
 end
