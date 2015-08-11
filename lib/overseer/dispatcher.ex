@@ -19,6 +19,7 @@ defmodule OpenAperture.Overseer.Dispatcher do
   alias OpenAperture.OverseerApi.Request
 
   alias OpenAperture.ManagerApi
+  alias OpenAperture.ManagerApi.SystemEvent
 
   @logprefix "[Dispatcher]"
 
@@ -84,13 +85,50 @@ defmodule OpenAperture.Overseer.Dispatcher do
         process_request(request.action, request.options, delivery_tag) 
       catch
         :exit, code   -> 
-          Logger.error("Message #{delivery_tag} (action #{request.action}) Exited with code #{inspect code}.  Payload:  #{inspect payload}")
+          error_msg = "Message #{delivery_tag} (action #{request.action}) Exited with code #{inspect code}.  Payload:  #{inspect payload}"
+          Logger.error(error_msg)
+          event = %{
+          type: :unhandled_exception, 
+            severity: :error, 
+            data: %{
+              component: :overseer,
+              exchange_id: Configuration.get_current_exchange_id,
+              hostname: System.get_env("HOSTNAME")
+            },
+            message: error_msg
+          }       
+          SystemEvent.create_system_event!(ManagerApi.get_api, event)
+
           acknowledge(delivery_tag)
         :throw, value -> 
-          Logger.error("Message #{delivery_tag} (action #{request.action}) Throw called with #{inspect value}.  Payload:  #{inspect payload}")
+          error_msg = "Message #{delivery_tag} (action #{request.action}) Throw called with #{inspect value}.  Payload:  #{inspect payload}"
+          Logger.error(error_msg)
+          event = %{
+          type: :unhandled_exception, 
+            severity: :error, 
+            data: %{
+              component: :overseer,
+              exchange_id: Configuration.get_current_exchange_id,
+              hostname: System.get_env("HOSTNAME")
+            },
+            message: error_msg
+          }       
+          SystemEvent.create_system_event!(ManagerApi.get_api, event)          
           acknowledge(delivery_tag)
         what, value   -> 
-          Logger.error("Message #{delivery_tag} (action #{request.action}) Caught #{inspect what} with #{inspect value}.  Payload:  #{inspect payload}")
+          error_msg = "Message #{delivery_tag} (action #{request.action}) Caught #{inspect what} with #{inspect value}.  Payload:  #{inspect payload}"
+          Logger.error(error_msg)
+          event = %{
+          type: :unhandled_exception, 
+            severity: :error, 
+            data: %{
+              component: :overseer,
+              exchange_id: Configuration.get_current_exchange_id,
+              hostname: System.get_env("HOSTNAME")
+            },
+            message: error_msg
+          }       
+          SystemEvent.create_system_event!(ManagerApi.get_api, event)          
           acknowledge(delivery_tag)
       end         
     end)
