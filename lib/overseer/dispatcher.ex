@@ -88,7 +88,8 @@ defmodule OpenAperture.Overseer.Dispatcher do
           error_msg = "Message #{delivery_tag} (action #{request.action}) Exited with code #{inspect code}.  Payload:  #{inspect payload}"
           Logger.error(error_msg)
           event = %{
-          type: :unhandled_exception, 
+            unique: true,
+            type: :unhandled_exception, 
             severity: :error, 
             data: %{
               component: :overseer,
@@ -104,7 +105,8 @@ defmodule OpenAperture.Overseer.Dispatcher do
           error_msg = "Message #{delivery_tag} (action #{request.action}) Throw called with #{inspect value}.  Payload:  #{inspect payload}"
           Logger.error(error_msg)
           event = %{
-          type: :unhandled_exception, 
+            unique: true,
+            type: :unhandled_exception, 
             severity: :error, 
             data: %{
               component: :overseer,
@@ -119,7 +121,8 @@ defmodule OpenAperture.Overseer.Dispatcher do
           error_msg = "Message #{delivery_tag} (action #{request.action}) Caught #{inspect what} with #{inspect value}.  Payload:  #{inspect payload}"
           Logger.error(error_msg)
           event = %{
-          type: :unhandled_exception, 
+            unique: true,
+            type: :unhandled_exception, 
             severity: :error, 
             data: %{
               component: :overseer,

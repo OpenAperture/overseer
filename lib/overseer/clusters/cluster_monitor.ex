@@ -83,7 +83,8 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
         Logger.error("#{@logprefix}[#{etcd_token}] Unable to perform host checking...invalid hosts were found in exchange #{exchange_id}!")
 
         event = %{
-        type: :docker_disk_space_percent, 
+          unique: true,
+          type: :docker_disk_space_percent, 
           severity: :warning, 
           data: %{host_cnt: 0},
           message: "EtcdCluster #{etcd_token} has no associated hosts"
@@ -93,7 +94,8 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
         Logger.error("#{@logprefix}[#{etcd_token}] Unable to perform host checking...no hosts were found in exchange #{exchange_id}!")
 
         event = %{
-        type: :docker_disk_space_percent, 
+          unique: true,
+          type: :docker_disk_space_percent, 
           severity: :warning, 
           data: %{host_cnt: 0},
           message: "EtcdCluster #{etcd_token} has no associated hosts"
@@ -158,7 +160,8 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
 
     event = cond do 
       info["docker_disk_space_percent"] == nil -> %{
-        type: :docker_disk_space_percent, 
+          unique: true,        
+          type: :docker_disk_space_percent, 
           severity: :error, 
           data: %{
             docker_disk_space_percent: nil,
@@ -168,7 +171,8 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
           message: "Host #{returned_hostname} is not reporting the Docker disk space utilization %!"
         }
       info["docker_disk_space_percent"] > 90 -> %{
-        type: :docker_disk_space_percent, 
+          unique: true,        
+          type: :docker_disk_space_percent, 
           severity: :error, 
           data: %{
             docker_disk_space_percent: info["docker_disk_space_percent"],
@@ -178,7 +182,8 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
           message: "Host #{returned_hostname} is reporting a Docker disk space utilization of #{info["docker_disk_space_percent"]}%!"
         }        
       info["docker_disk_space_percent"] > 80 -> %{
-        type: :docker_disk_space_percent, 
+          unique: true,
+          type: :docker_disk_space_percent, 
           severity: :warning, 
           data: %{
             docker_disk_space_percent: info["docker_disk_space_percent"],
@@ -222,7 +227,8 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
         Logger.error("#{@logprefix}[#{etcd_token}] Unable to perform states checking...invalid states were found in cluster #{etcd_token}!")
 
         event = %{
-        type: :failed_unit, 
+          unique: true,
+          type: :failed_unit, 
           severity: :warning, 
           data: %{
             etcd_token: etcd_token,
@@ -264,13 +270,14 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
         :timer.sleep(10_000)
         monitor_units(all_units, etcd_token, failure_count + 1)
       unit["systemdActiveState"] == "failed" -> %{
+        unique: true,        
         type: :failed_unit, 
-          severity: :warning, 
-          data: %{
-            unit_name: unit["name"],
-            etcd_token: etcd_token
-          },
-          message: "Unit #{unit["name"]} is in a failed state!"
+        severity: :warning, 
+        data: %{
+          unit_name: unit["name"],
+          etcd_token: etcd_token
+        },
+        message: "Unit #{unit["name"]} is in a failed state!"
         } 
       true -> nil        
     end
