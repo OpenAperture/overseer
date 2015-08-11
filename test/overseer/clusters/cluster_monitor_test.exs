@@ -244,16 +244,16 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitorTests do
   # monitor_units tests
 
   test "monitor_units - empty" do
-    ClusterMonitor.monitor_units([], "#{UUID.uuid1()}")
+    ClusterMonitor.monitor_units([], "#{UUID.uuid1()}", 0)
   end
 
   test "monitor_units - active unit" do
-    ClusterMonitor.monitor_units([%{"systemdActiveState" => "active"}], "#{UUID.uuid1()}")
+    ClusterMonitor.monitor_units([%{"systemdActiveState" => "active"}], "#{UUID.uuid1()}", 0)
   end
 
   test "monitor_units - failed unit" do
     :meck.expect(SystemEvent, :create_system_event!, fn _,_ -> :ok end)
         
-    ClusterMonitor.monitor_units([%{"systemdActiveState" => "failed"}], "#{UUID.uuid1()}")
+    ClusterMonitor.monitor_units([%{"systemdActiveState" => "failed"}], "#{UUID.uuid1()}", 3)
   end
 end
