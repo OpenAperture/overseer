@@ -7,7 +7,6 @@
 require Logger
 
 defmodule OpenAperture.Overseer.MessageManager do
-  alias OpenAperture.OverseerApi.Heartbeat
 
   @logprefix "[MessageManager]"
 
