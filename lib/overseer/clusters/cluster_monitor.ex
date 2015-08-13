@@ -237,8 +237,10 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
           message: "EtcdCluster #{etcd_token} failed to return unit states!"
         }       
         SystemEvent.create_system_event!(ManagerApi.get_api, event)      
-      {:ok, units} -> monitor_units(units, etcd_token, 0)
-    end    
+      {:ok, units} -> 
+        monitor_unit_instances(units, etcd_token, 0)
+        monitor_units(units, etcd_token)
+    end
   end
 
   @doc """
@@ -249,8 +251,8 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
   The `etcd_token` option defines the EtcdToken associated with the cluster
 
   """
-  @spec monitor_host([], String.t, term) :: term
-  def monitor_units([], _etcd_token, _failure_count) do
+  @spec monitor_unit_instances([], String.t, term) :: term
+  def monitor_unit_instances([], _etcd_token, _failure_count) do
     Logger.debug("Finished reviewing units") 
   end
 
@@ -262,13 +264,14 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
   The `etcd_token` option defines the EtcdToken associated with the cluster
 
   """
-  @spec monitor_units(List, String.t, term) :: term
-  def monitor_units([unit| remaining_units] = all_units, etcd_token, failure_count) do
+  @spec monitor_unit_instances(List, String.t, term) :: term
+  def monitor_unit_instances([unit| remaining_units] = all_units, etcd_token, failure_count) do
     event = cond do 
       #give failed units 3 tries before generating an error
       unit["systemdActiveState"] == "failed" && failure_count < 3 ->
         :timer.sleep(10_000)
-        monitor_units(all_units, etcd_token, failure_count + 1)
+        #TODO:  need to refresh the unit state first
+        monitor_unit_instances(all_units, etcd_token, failure_count + 1)
       unit["systemdActiveState"] == "failed" -> %{
         unique: true,        
         type: :failed_unit, 
@@ -289,6 +292,55 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
       Logger.debug("#{@logprefix} Unit #{unit["name"]} is running as expected")
     end
 
-    monitor_units(remaining_units, etcd_token, 0)
+    monitor_unit_instances(remaining_units, etcd_token, 0)
+  end
+
+  @doc """
+  Method to determine if there is at least 1 instance of each unit name running
+
+  ## Option Values
+
+  The `units` option defines a List of Units to review
+
+  The `etcd_token` option defines the EtcdToken associated with the cluster
+
+  """
+  @spec monitor_units(List, String.t) :: term
+  def monitor_units(units, etcd_token) do
+    if units == nil || length(units) == 0 do
+      Logger.debug("#{@logprefix} There are no units in cluster #{etcd_token} to review")
+    else
+      units_by_name = Enum.reduce units, %{}, fn(unit, units_by_name) ->
+        running_units = units_by_name[unit["name"]]
+        if running_units == nil do
+          running_units = []
+        end
+
+        if unit["systemdActiveState"] == "failed" do
+          units_by_name
+        else
+          Map.put(units_by_name, unit["name"], running_units ++ [unit])
+        end
+      end
+
+      Enum.reduce Map.keys(units_by_name), nil, fn (unit_name, _errors) ->
+        running_units = units_by_name[unit_name]
+        if length(running_units) == 0 do
+          event = %{
+            unique: true,        
+            type: :failed_unit, 
+            severity: :error, 
+            data: %{
+              unit_name: unit_name,
+              etcd_token: etcd_token
+            },
+            message: "Unit #{unit_name} has no running instances!"
+          } 
+
+          Logger.error("#{@logprefix} A system event was generated for unit #{unit_name}:  #{inspect event}")
+          SystemEvent.create_system_event!(ManagerApi.get_api, event)          
+        end
+      end
+    end
   end
 end
