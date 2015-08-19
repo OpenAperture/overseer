@@ -25,7 +25,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
 
   Task
   """
-  @spec create(pid) :: Task
+  @spec create(pid) :: task
   def create(mgr) do
     Task.async(fn ->
       try do
@@ -118,7 +118,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
   {:ok, updated_status} | {:error, reason}
 
   """
-  @spec check_upgrade_status(pid, Map) :: {:ok, term} | {:error, term}
+  @spec check_upgrade_status(pid, map) :: {:ok, term} | {:error, term}
   def check_upgrade_status(mgr, component) do
     current_workflow = resolve_current_workflow(component["upgrade_status"])
 
@@ -170,7 +170,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
 
   Map of the last Upgrade
   """
-  @spec resolve_current_workflow(Map) :: Map
+  @spec resolve_current_workflow(map) :: map
   def resolve_current_workflow(upgrade_status) do
     if upgrade_status == nil || upgrade_status["workflows"] == nil || length(upgrade_status["workflows"]) == 0 do
       nil

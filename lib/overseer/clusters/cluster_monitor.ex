@@ -23,7 +23,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link(Map) :: {:ok, pid} | {:error, String.t}
+  @spec start_link(map) :: {:ok, pid} | {:error, String.t}
   def start_link(cluster) do
     Logger.debug("#{@logprefix}[#{cluster["etcd_token"]}] Starting...")
     GenServer.start_link(__MODULE__, %{cluster: cluster, etcd_token: cluster["etcd_token"]})
@@ -56,7 +56,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
 
   {:noreply, state}
   """
-  @spec handle_cast({:monitor}, Map) :: {:noreply, Map}
+  @spec handle_cast({:monitor}, map) :: {:noreply, map}
   def handle_cast({:monitor}, state) do
     monitor_cluster(state[:etcd_token])
     monitor_cluster_units(state[:etcd_token])
@@ -115,7 +115,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
   The `hosts` option defines the list of hosts in the cluster
 
   """
-  @spec monitor_hosts(String.t, List) :: term
+  @spec monitor_hosts(String.t, list) :: term
   def monitor_hosts(etcd_token, hosts) do
     hostnames = Enum.reduce hosts, [], fn(host, hostnames) ->
       hostnames ++ [host["primaryIP"]]
@@ -137,7 +137,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
   The `node_info` option defines the Map of all host information
 
   """
-  @spec monitor_host([], Map, String.t) :: term
+  @spec monitor_host([], map, String.t) :: term
   def monitor_host([], _node_info, _etcd_token) do
     Logger.debug("Finished reviewing node_info")
   end
@@ -152,7 +152,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
   The `node_info` option defines the Map of all host information
 
   """
-  @spec monitor_host(List, Map, String.t) :: term
+  @spec monitor_host(list, map, String.t) :: term
   def monitor_host([returned_hostname | remaining_hostnames], node_info, etcd_token) do
     info = node_info[returned_hostname]
 
@@ -264,7 +264,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
   The `etcd_token` option defines the EtcdToken associated with the cluster
 
   """
-  @spec monitor_unit_instances(List, String.t, term) :: term
+  @spec monitor_unit_instances(list, String.t, term) :: term
   def monitor_unit_instances([unit| remaining_units] = all_units, etcd_token, failure_count) do
     event = cond do
       #give failed units 3 tries before generating an error
@@ -305,7 +305,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
   The `etcd_token` option defines the EtcdToken associated with the cluster
 
   """
-  @spec monitor_units(List, String.t) :: term
+  @spec monitor_units(list, String.t) :: term
   def monitor_units(units, etcd_token) do
     if units == nil || length(units) == 0 do
       Logger.debug("#{@logprefix} There are no units in cluster #{etcd_token} to review")

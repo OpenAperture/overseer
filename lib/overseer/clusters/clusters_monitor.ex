@@ -47,7 +47,7 @@ defmodule OpenAperture.Overseer.Clusters.ClustersMonitor do
 
   {:noreply, state}
   """
-  @spec handle_cast({:monitor}, Map) :: {:noreply, Map}
+  @spec handle_cast({:monitor}, map) :: {:noreply, map}
   def handle_cast({:monitor}, state) do
     #sleep for up to half an hour
     sleep_seconds = :random.uniform(1800)
@@ -72,7 +72,7 @@ defmodule OpenAperture.Overseer.Clusters.ClustersMonitor do
 
   The `state` option is the GenServer's state
   """
-  @spec monitor_cached_clusters(Map) :: Map
+  @spec monitor_cached_clusters(map) :: map
   def monitor_cached_clusters(state) do
     Enum.reduce Map.values(state[:clusters]), nil, fn monitor, _result ->
       ClusterMonitor.monitor(monitor)
@@ -90,7 +90,7 @@ defmodule OpenAperture.Overseer.Clusters.ClustersMonitor do
 
   state
   """
-  @spec monitor_clusters(Map) :: Map
+  @spec monitor_clusters(map) :: map
   def monitor_clusters(state) do
     exchange_id = Configuration.get_current_exchange_id
 
@@ -122,7 +122,7 @@ defmodule OpenAperture.Overseer.Clusters.ClustersMonitor do
 
   state
   """
-  @spec monitor_cluster(Map, Map) :: Map
+  @spec monitor_cluster(map, map) :: map
   def monitor_cluster(state, cluster) do
     if state[:clusters][cluster["etcd_token"]] == nil do
       case ClusterMonitor.start_link(cluster) do
@@ -154,7 +154,7 @@ defmodule OpenAperture.Overseer.Clusters.ClustersMonitor do
 
   state
   """
-  @spec stop_monitoring_clusters(Map, List) :: Map
+  @spec stop_monitoring_clusters(map, list) :: map
   def stop_monitoring_clusters(state, clusters \\ nil) do
     if clusters == nil do
       clusters = Map.keys(state[:clusters])

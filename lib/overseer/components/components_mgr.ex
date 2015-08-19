@@ -63,7 +63,7 @@ defmodule OpenAperture.Overseer.Components.ComponentsMgr do
 
   {:noreply, state}
   """
-  @spec handle_cast({:resolve_system_components}, Map) :: {:noreply, Map}
+  @spec handle_cast({:resolve_system_components}, map) :: {:noreply, map}
   def handle_cast({:resolve_system_components}, state) do
     state = resolve_system_components(state)
     :timer.sleep(300000)
@@ -83,7 +83,7 @@ defmodule OpenAperture.Overseer.Components.ComponentsMgr do
 
   Map, containing the updated state
   """
-  @spec resolve_system_components(Map) :: Map
+  @spec resolve_system_components(map) :: map
   def resolve_system_components(state) do
     exchange_id = Configuration.get_current_exchange_id
 

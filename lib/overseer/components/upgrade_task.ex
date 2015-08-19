@@ -27,7 +27,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
 
   Task
   """
-  @spec create(pid) :: Task
+  @spec create(pid) :: task
 	def create(mgr) do
     Task.async(fn ->
       try do
@@ -102,7 +102,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
 
   {true, SystemComponentRef} | {false, reason, SystemComponentRef}
   """
-  @spec eligible_for_upgrade?(Map) :: {true, Map} | {false, term, Map}
+  @spec eligible_for_upgrade?(map) :: {true, map} | {false, term, map}
   def eligible_for_upgrade?(component) do
     type = component["type"]
     case SystemComponentRef.get_system_component_ref!(ManagerApi.get_api, type) do
@@ -146,7 +146,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
 
   :ok | {:error, reason}
   """
-  @spec upgrade(pid, Map, Map) :: :ok | {:error, term}
+  @spec upgrade(pid, map, map) :: :ok | {:error, term}
   def upgrade(mgr, component, ref_component) do
     Logger.debug("#{@logprefix}[#{component["type"]}] Component #{component["type"]} is eligible for upgrade, executing an upgrade request...")
 
@@ -202,7 +202,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
 
   {:ok, Workflows} | {:error, reason}
   """
-  @spec create_upgrade_workflows(Map, Map) :: {:ok, List} | {:error, term}
+  @spec create_upgrade_workflows(map, map) :: {:ok, list} | {:error, term}
   def create_upgrade_workflows(component, ref_component) do
     workflow_request = %{
       deployment_repo: component["deployment_repo"],

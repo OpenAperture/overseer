@@ -33,7 +33,7 @@ defmodule OpenAperture.Overseer.Modules.Manager do
 
   :ok
   """
-  @spec set_modules(List) :: :ok
+  @spec set_modules(list) :: :ok
   def set_modules(modules) do
   	GenServer.cast(__MODULE__, {:set_modules, modules})
   end
@@ -44,7 +44,7 @@ defmodule OpenAperture.Overseer.Modules.Manager do
 
   {:noreply, state}
   """
-  @spec handle_cast(pid, term) :: {:noreply, Map}
+  @spec handle_cast(pid, term) :: {:noreply, map}
   def handle_cast({:set_modules, modules}, state) do
     inactivate_listeners(modules)
   	{:noreply, state}
@@ -60,7 +60,7 @@ defmodule OpenAperture.Overseer.Modules.Manager do
 	The `modules` option is the list of modules
 
   """
-  @spec inactivate_listeners(Map) :: term
+  @spec inactivate_listeners(map) :: term
   def inactivate_listeners(modules) do
     if modules == nil || length(modules) == 0 do
       Logger.debug("[Manager] There are no modules to review for inactivation")

@@ -48,7 +48,7 @@ defmodule OpenAperture.Overseer.Modules.Listener do
 
   {:noreply, state}
   """
-  @spec handle_cast({:start_listening}, Map) :: {:noreply, Map}
+  @spec handle_cast({:start_listening}, map) :: {:noreply, map}
   def handle_cast({:start_listening}, state) do
     Logger.debug("[Listener] Starting event listener...")
     event_queue = QueueBuilder.build(ManagerApi.get_api, Configuration.get_current_system_modules_queue_name, Configuration.get_current_exchange_id)
@@ -81,7 +81,7 @@ defmodule OpenAperture.Overseer.Modules.Listener do
 
   The `delivery_tag` option is the unique identifier of the message
   """
-  @spec process_event(Map, String.t) :: term
+  @spec process_event(map, String.t) :: term
   def process_event(%{event_type: :status} = payload, _delivery_tag) do
     Logger.debug("Received a status event from module #{payload[:hostname]}")
 
@@ -115,7 +115,7 @@ defmodule OpenAperture.Overseer.Modules.Listener do
 
   The `delivery_tag` option is the unique identifier of the message
   """
-  @spec process_event(Map, String.t) :: term
+  @spec process_event(map, String.t) :: term
   def process_event(%{event_type: type} = _payload, _delivery_tag) do
     Logger.debug("[Listener] Received an unknown event:  #{inspect type}")
   end

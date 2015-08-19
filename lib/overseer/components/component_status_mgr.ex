@@ -42,7 +42,7 @@ defmodule OpenAperture.Overseer.Components.ComponentStatusMgr do
 
   {:noreply, state}
   """
-  @spec handle_cast({:check_for_upgrade}, Map) :: {:noreply, Map}
+  @spec handle_cast({:check_for_upgrade}, map) :: {:noreply, map}
   def handle_cast({:check_for_upgrade}, state) do
     check_for_upgrade(state)
 
@@ -61,7 +61,7 @@ defmodule OpenAperture.Overseer.Components.ComponentStatusMgr do
 
   state
   """
-  @spec check_for_upgrade(Map) :: Map
+  @spec check_for_upgrade(map) :: map
   def check_for_upgrade(state) do
     component = ComponentMgr.component(state[:component_mgr])
     upgrade_strategy = if component["upgrade_strategy"] != nil, do: String.to_atom(component["upgrade_strategy"])

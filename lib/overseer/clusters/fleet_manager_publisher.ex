@@ -153,7 +153,7 @@ defmodule OpenAperture.Overseer.FleetManagerPublisher do
 
   RpcHandler pid
   """
-  @spec node_info!(term, List) :: pid
+  @spec node_info!(term, list) :: pid
   def node_info!(cluster_exchange_id, nodes) do
     request_body = %{
         action: :node_info,
@@ -168,7 +168,7 @@ defmodule OpenAperture.Overseer.FleetManagerPublisher do
     end
   end
 
-  @spec handle_call({:execute_rpc_request, Map, term}, term, Map) :: {:reply, pid, Map}
+  @spec handle_call({:execute_rpc_request, map, term}, term, map) :: {:reply, pid, map}
   def handle_call({:execute_rpc_request, request_body, cluster_exchange_id}, _from, state) do
     request = %RpcRequest{
       status: :not_started,

@@ -41,7 +41,7 @@ defmodule OpenAperture.Overseer.Modules.Retriever do
 
   {:noreply, new modules list}
   """
-  @spec handle_cast({:retrieve_module_list}, term) :: {:noreply, List}
+  @spec handle_cast({:retrieve_module_list}, term) :: {:noreply, list}
   def handle_cast({:retrieve_module_list}, _state) do
     modules = refresh_modules
 
