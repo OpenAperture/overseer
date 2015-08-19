@@ -12,7 +12,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
 
   @moduledoc """
   This module contains the Task for Monitoring an in-progress upgrade
-  """  
+  """
 
   @doc """
   Method to start a new MonitorTask
@@ -27,7 +27,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
   """
   @spec create(pid) :: Task
   def create(mgr) do
-    Task.async(fn -> 
+    Task.async(fn ->
       try do
         ComponentMgr.set_task(mgr, :monitoring_task, self)
 
@@ -35,15 +35,15 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
         :timer.sleep(60000)
         execute_monitoring(mgr)
       catch
-        :exit, code   -> 
+        :exit, code   ->
           component = ComponentMgr.refresh(mgr)
           Logger.error("#{@logprefix}[#{component["type"]}] Monitoring component #{component["id"]} Exited with code #{inspect code}")
           ComponentMgr.set_task(mgr, :monitoring_task, nil)
-        :throw, value -> 
+        :throw, value ->
           component = ComponentMgr.refresh(mgr)
           Logger.error("#{@logprefix}[#{component["type"]}] Monitoring component #{component["id"]} Throw called with #{inspect value}")
           ComponentMgr.set_task(mgr, :monitoring_task, nil)
-        what, value   -> 
+        what, value   ->
           component = ComponentMgr.refresh(mgr)
           Logger.error("#{@logprefix}[#{component["type"]}] Monitoring component #{component["id"]} Caught #{inspect what} with #{inspect value}")
           ComponentMgr.set_task(mgr, :monitoring_task, nil)
@@ -68,7 +68,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
       case check_upgrade_status(mgr, component) do
         {:ok, :upgrade_completed} ->
           Logger.info("#{@logprefix}[#{component["type"]}] Upgrade monitoring task for type #{component["type"]} (#{component["id"]}) has completed in status :upgrade_completed")
-          
+
           #save status
           upgrade_status = component["upgrade_status"]
           upgrade_status = Map.put(upgrade_status, "current_workflow", nil)
@@ -83,7 +83,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
           component = ComponentMgr.save(mgr, component)
         {:ok, status, current_workflow_id} ->
           Logger.info("#{@logprefix}[#{component["type"]}] Upgrade monitoring task for type #{component["type"]} (#{component["id"]}) is in status #{status}")
-          
+
           #save status
           upgrade_status = component["upgrade_status"]
           upgrade_status = Map.put(upgrade_status, "current_workflow", current_workflow_id)
@@ -93,7 +93,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
           ComponentMgr.save(mgr, component)
         {:error, reason} ->
           Logger.error("#{@logprefix}[#{component["type"]}] Upgrade monitoring task for type #{component["type"]} (#{component["id"]}) has failed: #{inspect reason}")
-          
+
           #save failure
           upgrade_status = component["upgrade_status"]
           upgrade_status = Map.put(upgrade_status, "failure_reason", "Upgrade monitoring task for type #{component["type"]} (#{component["id"]}) has failed: #{inspect reason}")
@@ -124,7 +124,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
 
     cond do
       #bad upgrade request
-      current_workflow == nil -> 
+      current_workflow == nil ->
         {:error, "Invalid upgrade_status - no current workflow could be identified!"}
 
       #not started
@@ -136,7 +136,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
           false -> {:error, "Failed to execute the next Workflow - #{current_workflow["id"]}!"}
           true ->
             Logger.debug("#{@logprefix}[#{component["type"]}] Successfully executed the next Workflow - #{current_workflow["id"]}")
-            
+
             #create another monitoring task
             MonitorTask.create(mgr)
             {:ok, :upgrade_in_progress, current_workflow["id"]}
@@ -177,7 +177,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
     else
       try do
         Enum.reduce upgrade_status["workflows"], nil, fn workflow_id, current_workflow ->
-          workflow = Workflow.get_workflow!(ManagerApi.get_api, workflow_id) 
+          workflow = Workflow.get_workflow!(ManagerApi.get_api, workflow_id)
 
           cond do
             workflow == nil -> raise "An error occurred retrieving Workflow #{workflow_id}!"

@@ -14,7 +14,7 @@ defmodule OpenAperture.Overseer.Modules.Listener do
 
   @moduledoc """
   This module contains the logic to subscribe and unsubscribe from Module-specific queues
-  """  
+  """
 
 	@connection_options nil
 	use OpenAperture.Messaging
@@ -30,7 +30,7 @@ defmodule OpenAperture.Overseer.Modules.Listener do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}   
+  @spec start_link() :: {:ok, pid} | {:error, String.t()}
   def start_link() do
     case GenServer.start_link(__MODULE__, %{}, []) do
       {:ok, listener} ->
@@ -54,17 +54,17 @@ defmodule OpenAperture.Overseer.Modules.Listener do
     event_queue = QueueBuilder.build(ManagerApi.get_api, Configuration.get_current_system_modules_queue_name, Configuration.get_current_exchange_id)
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
-    subscription_handler = case subscribe(options, event_queue, fn(payload, _meta, %{subscription_handler: subscription_handler, delivery_tag: delivery_tag} = _async_info) -> 
+    subscription_handler = case subscribe(options, event_queue, fn(payload, _meta, %{subscription_handler: subscription_handler, delivery_tag: delivery_tag} = _async_info) ->
       #Logger.debug("[Listener] Received message #{delivery_tag}")
       #MessageManager.track(async_info)
       process_event(payload, delivery_tag)
       SubscriptionHandler.acknowledge(subscription_handler, delivery_tag)
       #MessageManager.remove(delivery_tag)
     end) do
-      {:ok, subscription_handler} -> 
+      {:ok, subscription_handler} ->
         Logger.debug("[Listener] Successfully started event listener #{inspect subscription_handler}")
         subscription_handler
-      {:error, reason} -> 
+      {:error, reason} ->
         Logger.error("[Listener] Failed to start event listener:  #{inspect reason}")
         nil
     end
@@ -93,14 +93,14 @@ defmodule OpenAperture.Overseer.Modules.Listener do
     }
 
     case MessagingExchangeModule.create_module!(Configuration.get_current_exchange_id, new_module) do
-      nil -> 
+      nil ->
         response = MessagingExchangeModule.create_module(Configuration.get_current_exchange_id, new_module)
         if response.success? do
           Logger.debug("[Listener] Successfully updated module #{payload[:hostname]}")
           true
         else
           Logger.error("[Listener] Failed to update module #{payload[:hostname]}!  module - #{inspect payload}, status - #{inspect response.status}, errors - #{inspect response.raw_body}")
-          false      
+          false
         end
       _ -> Logger.debug("[Listener] Successfully updated module #{payload[:hostname]}")
     end

@@ -14,7 +14,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
 
   @moduledoc """
   This module contains the GenServer for monitoring a cluster in the associated exchange
-  """  
+  """
 
   @doc """
   Specific start_link implementation
@@ -23,7 +23,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link(Map) :: {:ok, pid} | {:error, String.t()}  
+  @spec start_link(Map) :: {:ok, pid} | {:error, String.t()}
   def start_link(cluster) do
     Logger.debug("#{@logprefix}[#{cluster["etcd_token"]}] Starting...")
     GenServer.start_link(__MODULE__, %{cluster: cluster, etcd_token: cluster["etcd_token"]})
@@ -79,28 +79,28 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
     handler = FleetManagerPublisher.list_machines!(etcd_token, exchange_id)
     case RpcHandler.get_response(handler) do
       {:error, reason} -> Logger.error("#{@logprefix}[#{etcd_token}] Received the following error retrieving node_info:  #{inspect reason}")
-      {:ok, nil} -> 
+      {:ok, nil} ->
         Logger.error("#{@logprefix}[#{etcd_token}] Unable to perform host checking...invalid hosts were found in exchange #{exchange_id}!")
 
         event = %{
           unique: true,
-          type: :docker_disk_space_percent, 
-          severity: :warning, 
+          type: :docker_disk_space_percent,
+          severity: :warning,
           data: %{host_cnt: 0},
           message: "EtcdCluster #{etcd_token} has no associated hosts"
-        }       
+        }
         SystemEvent.create_system_event!(ManagerApi.get_api, event)
-      {:ok, []} -> 
+      {:ok, []} ->
         Logger.error("#{@logprefix}[#{etcd_token}] Unable to perform host checking...no hosts were found in exchange #{exchange_id}!")
 
         event = %{
           unique: true,
-          type: :docker_disk_space_percent, 
-          severity: :warning, 
+          type: :docker_disk_space_percent,
+          severity: :warning,
           data: %{host_cnt: 0},
           message: "EtcdCluster #{etcd_token} has no associated hosts"
-        }       
-        SystemEvent.create_system_event!(ManagerApi.get_api, event)        
+        }
+        SystemEvent.create_system_event!(ManagerApi.get_api, event)
       {:ok, hosts} -> monitor_hosts(etcd_token, hosts)
     end
   end
@@ -139,7 +139,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
   """
   @spec monitor_host([], Map, String.t) :: term
   def monitor_host([], _node_info, _etcd_token) do
-    Logger.debug("Finished reviewing node_info") 
+    Logger.debug("Finished reviewing node_info")
   end
 
   @doc """
@@ -150,7 +150,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
   The `hosts` option defines the list of hosts to review
 
   The `node_info` option defines the Map of all host information
-  
+
   """
   @spec monitor_host(List, Map, String.t) :: term
   def monitor_host([returned_hostname | remaining_hostnames], node_info, etcd_token) do
@@ -158,11 +158,11 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
 
     Logger.debug("Evaluating hostname #{returned_hostname} in node_info #{inspect node_info}")
 
-    event = cond do 
+    event = cond do
       info["docker_disk_space_percent"] == nil -> %{
-          unique: true,        
-          type: :docker_disk_space_percent, 
-          severity: :error, 
+          unique: true,
+          type: :docker_disk_space_percent,
+          severity: :error,
           data: %{
             docker_disk_space_percent: nil,
             hostname: returned_hostname,
@@ -171,28 +171,28 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
           message: "Host #{returned_hostname} is not reporting the Docker disk space utilization %!"
         }
       info["docker_disk_space_percent"] > 90 -> %{
-          unique: true,        
-          type: :docker_disk_space_percent, 
-          severity: :error, 
+          unique: true,
+          type: :docker_disk_space_percent,
+          severity: :error,
           data: %{
             docker_disk_space_percent: info["docker_disk_space_percent"],
             hostname: returned_hostname,
             etcd_token: etcd_token
           },
           message: "Host #{returned_hostname} is reporting a Docker disk space utilization of #{info["docker_disk_space_percent"]}%!"
-        }        
+        }
       info["docker_disk_space_percent"] > 80 -> %{
           unique: true,
-          type: :docker_disk_space_percent, 
-          severity: :warning, 
+          type: :docker_disk_space_percent,
+          severity: :warning,
           data: %{
             docker_disk_space_percent: info["docker_disk_space_percent"],
             hostname: returned_hostname,
             etcd_token: etcd_token
           },
           message: "Host #{returned_hostname} is reporting a Docker disk space utilization of #{info["docker_disk_space_percent"]}%!"
-        } 
-      true -> nil        
+        }
+      true -> nil
     end
 
     if event != nil do
@@ -211,7 +211,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
   ## Option Values
 
   The `etcd_token` option defines the EtcdToken associated with the cluster
-  
+
   """
   @spec monitor_cluster_units(String.t) :: term
   def monitor_cluster_units(etcd_token) do
@@ -221,23 +221,23 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
     case RpcHandler.get_response(handler) do
       {:error, reason} -> Logger.error("#{@logprefix}[#{etcd_token}] Received the following error retrieving unit states:  #{inspect reason}")
       #i.e. build slaves
-      {:ok, []} -> Logger.debug("#{@logprefix}[#{etcd_token}] Cluster #{etcd_token} is not running any units") 
+      {:ok, []} -> Logger.debug("#{@logprefix}[#{etcd_token}] Cluster #{etcd_token} is not running any units")
       #load error occurred
-      {:ok, nil} -> 
+      {:ok, nil} ->
         Logger.error("#{@logprefix}[#{etcd_token}] Unable to perform states checking...invalid states were found in cluster #{etcd_token}!")
 
         event = %{
           unique: true,
-          type: :failed_unit, 
-          severity: :warning, 
+          type: :failed_unit,
+          severity: :warning,
           data: %{
             etcd_token: etcd_token,
             host_cnt: nil
             },
           message: "EtcdCluster #{etcd_token} failed to return unit states!"
-        }       
-        SystemEvent.create_system_event!(ManagerApi.get_api, event)      
-      {:ok, units} -> 
+        }
+        SystemEvent.create_system_event!(ManagerApi.get_api, event)
+      {:ok, units} ->
         monitor_unit_instances(units, etcd_token, 0)
         monitor_units(units, etcd_token)
     end
@@ -253,7 +253,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
   """
   @spec monitor_unit_instances([], String.t, term) :: term
   def monitor_unit_instances([], _etcd_token, _failure_count) do
-    Logger.debug("Finished reviewing units") 
+    Logger.debug("Finished reviewing units")
   end
 
   @doc """
@@ -266,23 +266,23 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
   """
   @spec monitor_unit_instances(List, String.t, term) :: term
   def monitor_unit_instances([unit| remaining_units] = all_units, etcd_token, failure_count) do
-    event = cond do 
+    event = cond do
       #give failed units 3 tries before generating an error
       unit["systemdActiveState"] == "failed" && failure_count < 3 ->
         :timer.sleep(10_000)
         #TODO:  need to refresh the unit state first
         monitor_unit_instances(all_units, etcd_token, failure_count + 1)
       unit["systemdActiveState"] == "failed" -> %{
-        unique: true,        
-        type: :failed_unit, 
-        severity: :warning, 
+        unique: true,
+        type: :failed_unit,
+        severity: :warning,
         data: %{
           unit_name: unit["name"],
           etcd_token: etcd_token
         },
         message: "Unit #{unit["name"]} is in a failed state!"
-        } 
-      true -> nil        
+        }
+      true -> nil
     end
 
     if event != nil do
@@ -327,18 +327,18 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
         running_units = units_by_name[unit_name]
         if length(running_units) == 0 do
           event = %{
-            unique: true,        
-            type: :failed_unit, 
-            severity: :error, 
+            unique: true,
+            type: :failed_unit,
+            severity: :error,
             data: %{
               unit_name: unit_name,
               etcd_token: etcd_token
             },
             message: "Unit #{unit_name} has no running instances!"
-          } 
+          }
 
           Logger.error("#{@logprefix} A system event was generated for unit #{unit_name}:  #{inspect event}")
-          SystemEvent.create_system_event!(ManagerApi.get_api, event)          
+          SystemEvent.create_system_event!(ManagerApi.get_api, event)
         end
       end
     end

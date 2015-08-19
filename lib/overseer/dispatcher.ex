@@ -24,8 +24,8 @@ defmodule OpenAperture.Overseer.Dispatcher do
   @logprefix "[Dispatcher]"
 
   @moduledoc """
-  This module contains the logic to dispatch Overseer messsages to the appropriate GenServer(s) 
-  """  
+  This module contains the logic to dispatch Overseer messsages to the appropriate GenServer(s)
+  """
 
 	@connection_options nil
 	use OpenAperture.Messaging
@@ -39,10 +39,10 @@ defmodule OpenAperture.Overseer.Dispatcher do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}   
+  @spec start_link() :: {:ok, pid} | {:error, String.t()}
   def start_link do
     case GenServer.start_link(__MODULE__, %{}, name: __MODULE__) do
-    	{:error, reason} -> 
+    	{:error, reason} ->
         Logger.error("#{@logprefix} Failed to start OpenAperture Overseer:  #{inspect reason}")
         {:error, reason}
     	{:ok, pid} ->
@@ -50,10 +50,10 @@ defmodule OpenAperture.Overseer.Dispatcher do
           if Application.get_env(:autostart, :register_queues, true) do
         		case register_queues do
               {:ok, _} -> {:ok, pid}
-              {:error, reason} -> 
+              {:error, reason} ->
                 Logger.error("#{@logprefix} Failed to register Overseer queues:  #{inspect reason}")
                 {:ok, pid}
-            end    		
+            end
           else
             {:ok, pid}
           end
@@ -77,63 +77,63 @@ defmodule OpenAperture.Overseer.Dispatcher do
     overseer_queue = QueueBuilder.build(ManagerApi.get_api, Configuration.get_current_queue_name, Configuration.get_current_exchange_id)
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
-    subscribe(options, overseer_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) -> 
+    subscribe(options, overseer_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) ->
       MessageManager.track(async_info)
 
       request = Request.from_payload(payload)
       try do
-        process_request(request.action, request.options, delivery_tag) 
+        process_request(request.action, request.options, delivery_tag)
       catch
-        :exit, code   -> 
+        :exit, code   ->
           error_msg = "Message #{delivery_tag} (action #{request.action}) Exited with code #{inspect code}.  Payload:  #{inspect payload}"
           Logger.error(error_msg)
           event = %{
             unique: true,
-            type: :unhandled_exception, 
-            severity: :error, 
+            type: :unhandled_exception,
+            severity: :error,
             data: %{
               component: :overseer,
               exchange_id: Configuration.get_current_exchange_id,
               hostname: System.get_env("HOSTNAME")
             },
             message: error_msg
-          }       
+          }
           SystemEvent.create_system_event!(ManagerApi.get_api, event)
 
           acknowledge(delivery_tag)
-        :throw, value -> 
+        :throw, value ->
           error_msg = "Message #{delivery_tag} (action #{request.action}) Throw called with #{inspect value}.  Payload:  #{inspect payload}"
           Logger.error(error_msg)
           event = %{
             unique: true,
-            type: :unhandled_exception, 
-            severity: :error, 
+            type: :unhandled_exception,
+            severity: :error,
             data: %{
               component: :overseer,
               exchange_id: Configuration.get_current_exchange_id,
               hostname: System.get_env("HOSTNAME")
             },
             message: error_msg
-          }       
-          SystemEvent.create_system_event!(ManagerApi.get_api, event)          
+          }
+          SystemEvent.create_system_event!(ManagerApi.get_api, event)
           acknowledge(delivery_tag)
-        what, value   -> 
+        what, value   ->
           error_msg = "Message #{delivery_tag} (action #{request.action}) Caught #{inspect what} with #{inspect value}.  Payload:  #{inspect payload}"
           Logger.error(error_msg)
           event = %{
             unique: true,
-            type: :unhandled_exception, 
-            severity: :error, 
+            type: :unhandled_exception,
+            severity: :error,
             data: %{
               component: :overseer,
               exchange_id: Configuration.get_current_exchange_id,
               hostname: System.get_env("HOSTNAME")
             },
             message: error_msg
-          }       
-          SystemEvent.create_system_event!(ManagerApi.get_api, event)          
+          }
+          SystemEvent.create_system_event!(ManagerApi.get_api, event)
           acknowledge(delivery_tag)
-      end         
+      end
     end)
   end
 
@@ -203,5 +203,5 @@ defmodule OpenAperture.Overseer.Dispatcher do
     unless message == nil do
       SubscriptionHandler.reject(message[:subscription_handler], message[:delivery_tag], redeliver)
     end
-  end  
+  end
 end

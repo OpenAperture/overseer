@@ -5,10 +5,10 @@ defmodule OpenAperture.Overseer.Modules.Manager do
   use Timex
 
  	alias OpenAperture.ManagerApi.MessagingExchangeModule
-	
+
   @moduledoc """
   This module contains the GenServer for managing Module communication processes
-  """  
+  """
 
   @doc """
   Specific start_link implementation
@@ -17,7 +17,7 @@ defmodule OpenAperture.Overseer.Modules.Manager do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}	
+  @spec start_link() :: {:ok, pid} | {:error, String.t()}
   def start_link() do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
@@ -70,8 +70,8 @@ defmodule OpenAperture.Overseer.Modules.Manager do
         try do
           diff_seconds = get_last_updated_seconds(module)
           Logger.debug("[Manager] Reviewing module #{module["hostname"]} for activation status (last updated #{diff_seconds} seconds ago)...")
-        
-          cond do 
+
+          cond do
             module["status"] == "inactive" && diff_seconds > 600 ->
               Logger.debug("[Manager] Module #{module["hostname"]} has not been updated in at least 20 minutes, delete it")
               case MessagingExchangeModule.delete_module!(Application.get_env(:openaperture_overseer_api, :exchange_id), module["hostname"]) do
@@ -89,9 +89,9 @@ defmodule OpenAperture.Overseer.Modules.Manager do
           end
         rescue e ->
           Logger.error("[Manager] An error occurred parsing updated_at time for a module:  #{inspect e}")
-        end     
-      end 
-    end 	
+        end
+      end
+    end
   end
 
   defp get_last_updated_seconds(module) do
@@ -101,11 +101,11 @@ defmodule OpenAperture.Overseer.Modules.Manager do
     else
      {:ok, updated_at} = DateFormat.parse(module["updated_at"], "{RFC1123}")
       updated_at_secs = Date.convert(updated_at, :secs) #since epoch
-      
+
       now = Date.now #utc
-      now_secs = Date.convert(now, :secs) #since epoch      
+      now_secs = Date.convert(now, :secs) #since epoch
 
       now_secs - updated_at_secs
-    end    
+    end
   end
 end

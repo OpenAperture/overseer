@@ -12,7 +12,7 @@ defmodule OpenAperture.Overseer.Components.ComponentStatusMgr do
 
   @moduledoc """
   This module contains the GenServer for a checking if upgrades need to be created
-  """  
+  """
 
   @doc """
   Specific start_link implementation
@@ -21,7 +21,7 @@ defmodule OpenAperture.Overseer.Components.ComponentStatusMgr do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link(pid) :: {:ok, pid} | {:error, String.t()}  
+  @spec start_link(pid) :: {:ok, pid} | {:error, String.t()}
   def start_link(mgr) do
     case GenServer.start_link(__MODULE__, %{component_mgr: mgr}) do
       {:error, reason} -> {:error, reason}
@@ -75,21 +75,21 @@ defmodule OpenAperture.Overseer.Components.ComponentStatusMgr do
       component["status"] == "upgrade_in_progress" ->
         Logger.debug("#{@logprefix}[#{component["type"]}] Component #{type} is not currently being monitored, but an upgrade is in progress.  Requesting a MonitorTask...")
         #the component is being upgraded, ensure that we have some task running.  If not, start a Monitoring task
-        #to resolve the current state        
+        #to resolve the current state
         MonitorTask.create(state[:component_mgr])
         #after 5 minutes, request another upgrade check (ensure the definition hasn't changed)
         :timer.sleep(300000)
       true ->
         Logger.debug("#{@logprefix}[#{component["type"]}] Component #{type} is not currently being monitored, reviewing for upgrade...")
-        
-        execute_upgrade = cond do 
+
+        execute_upgrade = cond do
           upgrade_strategy == :hourly ->
             Logger.debug("#{@logprefix}[#{component["type"]}] An hourly upgrade strategy has been defined for component #{type}")
 
             #pick a time randomly <= 1 hour
             :timer.sleep(:random.uniform(3600000))
             true
-          true -> 
+          true ->
             Logger.debug("#{@logprefix}[#{component["type"]}] A manual upgrade strategy has been defined for component #{type}")
 
             #after 5 minutes, request another upgrade check (ensure the definition hasn't changed)

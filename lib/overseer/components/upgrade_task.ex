@@ -14,7 +14,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
 
   @moduledoc """
   This module contains the Task for executing an upgrade
-  """  
+  """
 
   @doc """
   Method to start a new UpgradeTask
@@ -29,7 +29,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
   """
   @spec create(pid) :: Task
 	def create(mgr) do
-    Task.async(fn -> 
+    Task.async(fn ->
       try do
         ComponentMgr.set_task(mgr, :upgrade_task, self)
         execute_upgrade(mgr)
@@ -72,7 +72,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
       {true, ref_component} ->
         Logger.debug("#{@logprefix}[#{component["type"]}] Component #{type} is eligible for upgrade")
         case upgrade(mgr, component, ref_component) do
-          :ok -> 
+          :ok ->
             #create a monitoring task
             Logger.debug("#{@logprefix}[#{component["type"]}] The upgrade has started successfully, creating a MonitoringTask...")
             MonitorTask.create(mgr)
@@ -86,7 +86,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
             component = Map.put(component, "status", "upgrade_failed")
             component = Map.put(component, "upgrade_status", upgrade_status)
             ComponentMgr.save(mgr, component)
-            Logger.debug("#{@logprefix}[#{component["type"]}] Upgrade task has completed")      
+            Logger.debug("#{@logprefix}[#{component["type"]}] Upgrade task has completed")
         end
     end
   end
@@ -176,7 +176,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
         #save here so no other Overseer starts the upgrade
         component = ComponentMgr.save(mgr, component)
 
-        
+
         #execute first workflow
         execute_options = %{
         }
@@ -216,7 +216,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
       nil -> {:error, "Failed to create Workflow for request #{inspect workflow_request}"}
       workflow_request_id ->
         workflows = [workflow_request_id]
-        
+
         if ref_component["type"] == "deployer" do
           workflow_request = %{
             deployment_repo: "#{component["deployment_repo"]}_oa",
