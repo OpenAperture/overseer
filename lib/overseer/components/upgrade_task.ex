@@ -27,7 +27,7 @@ defmodule OpenAperture.Overseer.Components.UpgradeTask do
 
   Task
   """
-  @spec create(pid) :: task
+  @spec create(pid) :: Task.t
 	def create(mgr) do
     Task.async(fn ->
       try do

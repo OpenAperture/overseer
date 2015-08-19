@@ -25,7 +25,7 @@ defmodule OpenAperture.Overseer.Components.MonitorTask do
 
   Task
   """
-  @spec create(pid) :: task
+  @spec create(pid) :: Task.t
   def create(mgr) do
     Task.async(fn ->
       try do

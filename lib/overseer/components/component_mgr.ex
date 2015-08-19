@@ -112,7 +112,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   the upgrade / monitoring async Task
   """
-  @spec request_upgrade(pid) :: task
+  @spec request_upgrade(pid) :: Task.t
   def request_upgrade(mgr) do
     GenServer.call(mgr, {:request_upgrade})
   end
@@ -128,7 +128,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   the upgrade / monitoring async Task
   """
-  @spec current_upgrade_task(pid) :: task
+  @spec current_upgrade_task(pid) :: Task.t
   def current_upgrade_task(mgr) do
     GenServer.call(mgr, {:current_upgrade_task})
   end
@@ -144,7 +144,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   the upgrade / monitoring async Task
   """
-  @spec set_task(pid, term, task) :: task
+  @spec set_task(pid, term, Task.t) :: Task.t
   def set_task(mgr, task_type, task) do
     GenServer.call(mgr, {:set_upgrade_task, task_type, task})
   end
@@ -234,9 +234,9 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   ## Return Values
 
-  {:reply, task, state}
+  {:reply, Task, state}
   """
-  @spec handle_call({:request_upgrade}, pid, map) :: {:reply, task, map}
+  @spec handle_call({:request_upgrade}, pid, map) :: {:reply, Task.t, map}
   def handle_call({:request_upgrade}, _from, state) do
 
     if state[:upgrade_task] != nil && !Process.alive?(state[:upgrade_task].pid) do
@@ -277,7 +277,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   {:reply, task, state}
   """
-  @spec handle_call({:current_upgrade_task}, pid, map) :: {:reply, task, map}
+  @spec handle_call({:current_upgrade_task}, pid, map) :: {:reply, Task.t, map}
   def handle_call({:current_upgrade_task}, _from, state) do
     task = cond do
       state[:monitoring_task] != nil -> state[:monitoring_task]
@@ -326,7 +326,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   {:reply, manager, state}
   """
-  @spec handle_call({:set_upgrade_task, term, task}, pid, map) :: {:reply, task, map}
+  @spec handle_call({:set_upgrade_task, term, Task.t}, pid, map) :: {:reply, Task.t, map}
   def handle_call({:set_upgrade_task, task_type, task}, _from, state) do
     state = Map.put(state, task_type, task)
     {:reply, task, state}
