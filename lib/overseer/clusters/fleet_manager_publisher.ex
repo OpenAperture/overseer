@@ -25,11 +25,11 @@ defmodule OpenAperture.Overseer.FleetManagerPublisher do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link :: {:ok, pid} | {:error, String.t()}  
+  @spec start_link :: {:ok, pid} | {:error, String.t}
   def start_link do
     Logger.debug("Starting FleetManagerPublisher...")
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
-  end  
+  end
 
   @doc """
   Method to retrieve the machines in a Cluster
@@ -44,7 +44,7 @@ defmodule OpenAperture.Overseer.FleetManagerPublisher do
 
   RpcHandler pid
   """
-  @spec list_machines!(String.t(), term) :: pid
+  @spec list_machines!(String.t, term) :: pid
   def list_machines!(etcd_token, cluster_exchange_id) do
     request_body = %{
         etcd_token: etcd_token,
@@ -70,7 +70,7 @@ defmodule OpenAperture.Overseer.FleetManagerPublisher do
 
   RpcHandler pid
   """
-  @spec list_units!(String.t(), term) :: pid
+  @spec list_units!(String.t, term) :: pid
   def list_units!(etcd_token, cluster_exchange_id) do
     request_body = %{
         etcd_token: etcd_token,
@@ -96,7 +96,7 @@ defmodule OpenAperture.Overseer.FleetManagerPublisher do
 
   RpcHandler pid
   """
-  @spec list_unit_states!(String.t(), term) :: pid
+  @spec list_unit_states!(String.t, term) :: pid
   def list_unit_states!(etcd_token, cluster_exchange_id) do
     request_body = %{
         etcd_token: etcd_token,
@@ -108,7 +108,7 @@ defmodule OpenAperture.Overseer.FleetManagerPublisher do
       {:error, reason} -> raise reason
     end
   end
-    
+
   @doc """
   Method to retrieve unit logs for a particular Unit in a cluster
 
@@ -124,7 +124,7 @@ defmodule OpenAperture.Overseer.FleetManagerPublisher do
 
   RpcHandler pid
   """
-  @spec unit_logs!(String.t(), term, String.t) :: pid   
+  @spec unit_logs!(String.t, term, String.t) :: pid
   def unit_logs!(etcd_token, cluster_exchange_id, unit_name) do
     request_body = %{
         etcd_token: etcd_token,
@@ -153,7 +153,7 @@ defmodule OpenAperture.Overseer.FleetManagerPublisher do
 
   RpcHandler pid
   """
-  @spec node_info!(term, List) :: pid   
+  @spec node_info!(term, list) :: pid
   def node_info!(cluster_exchange_id, nodes) do
     request_body = %{
         action: :node_info,
@@ -165,10 +165,10 @@ defmodule OpenAperture.Overseer.FleetManagerPublisher do
     case GenServer.call(__MODULE__, {:execute_rpc_request, request_body, cluster_exchange_id}) do
       {:ok, handler} -> handler
       {:error, reason} -> raise reason
-    end    
-  end  
+    end
+  end
 
-  @spec handle_call({:execute_rpc_request, Map, term}, term, Map) :: {:reply, pid, Map}
+  @spec handle_call({:execute_rpc_request, map, term}, term, map) :: {:reply, pid, map}
   def handle_call({:execute_rpc_request, request_body, cluster_exchange_id}, _from, state) do
     request = %RpcRequest{
       status: :not_started,
@@ -178,7 +178,7 @@ defmodule OpenAperture.Overseer.FleetManagerPublisher do
     fleet_manager_queue = QueueBuilder.build(ManagerApi.get_api, "fleet_manager", cluster_exchange_id)
 
     connection_options = ConnectionOptionsResolver.resolve(
-      ManagerApi.get_api, 
+      ManagerApi.get_api,
       Configuration.get_current_broker_id,
       Configuration.get_current_exchange_id,
       cluster_exchange_id

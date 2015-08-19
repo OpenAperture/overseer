@@ -14,7 +14,7 @@ defmodule OpenAperture.Overseer.Clusters.ClustersMonitor do
 
   @moduledoc """
   This module contains the GenServer for monitoring all of the clusters in the associated exchange
-  """  
+  """
 
   @doc """
   Specific start_link implementation
@@ -23,11 +23,11 @@ defmodule OpenAperture.Overseer.Clusters.ClustersMonitor do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}  
+  @spec start_link() :: {:ok, pid} | {:error, String.t}
   def start_link() do
     Logger.debug("#{@logprefix} Starting...")
     case GenServer.start_link(__MODULE__, %{clusters: %{}}, name: __MODULE__) do
-      {:ok, pid} -> 
+      {:ok, pid} ->
         if Application.get_env(:autostart, :clusters_monitor, true) do
           GenServer.cast(pid, {:monitor})
         end
@@ -47,7 +47,7 @@ defmodule OpenAperture.Overseer.Clusters.ClustersMonitor do
 
   {:noreply, state}
   """
-  @spec handle_cast({:monitor}, Map) :: {:noreply, Map}
+  @spec handle_cast({:monitor}, map) :: {:noreply, map}
   def handle_cast({:monitor}, state) do
     #sleep for up to half an hour
     sleep_seconds = :random.uniform(1800)
@@ -72,7 +72,7 @@ defmodule OpenAperture.Overseer.Clusters.ClustersMonitor do
 
   The `state` option is the GenServer's state
   """
-  @spec monitor_cached_clusters(Map) :: Map
+  @spec monitor_cached_clusters(map) :: map
   def monitor_cached_clusters(state) do
     Enum.reduce Map.values(state[:clusters]), nil, fn monitor, _result ->
       ClusterMonitor.monitor(monitor)
@@ -90,16 +90,16 @@ defmodule OpenAperture.Overseer.Clusters.ClustersMonitor do
 
   state
   """
-  @spec monitor_clusters(Map) :: Map
+  @spec monitor_clusters(map) :: map
   def monitor_clusters(state) do
     exchange_id = Configuration.get_current_exchange_id
 
     clusters = MessagingExchange.exchange_clusters!(ManagerApi.get_api, exchange_id)
     cond do
-      clusters == nil -> 
+      clusters == nil ->
         Logger.error("#{@logprefix} Unable to load clusters associated with exchange #{exchange_id}!")
         state
-      clusters == [] -> 
+      clusters == [] ->
         Logger.debug("#{@logprefix} There are no clusters associated to exchange #{exchange_id}")
         stop_monitoring_clusters(state)
       true ->
@@ -122,23 +122,23 @@ defmodule OpenAperture.Overseer.Clusters.ClustersMonitor do
 
   state
   """
-  @spec monitor_cluster(Map, Map) :: Map
+  @spec monitor_cluster(map, map) :: map
   def monitor_cluster(state, cluster) do
     if state[:clusters][cluster["etcd_token"]] == nil do
       case ClusterMonitor.start_link(cluster) do
-        {:ok, monitor} -> 
+        {:ok, monitor} ->
           Logger.debug("#{@logprefix} Starting a new monitor for cluster #{cluster["etcd_token"]}")
           cluster_cache = state[:clusters]
           cluster_cache = Map.put(cluster_cache, cluster["etcd_token"], monitor)
           Map.put(state, :clusters, cluster_cache)
-        {:error, reason} -> 
+        {:error, reason} ->
           Logger.error("#{@logprefix} Failed to start Cluster monitor for cluster #{cluster["etcd_token"]}:  #{inspect reason}")
           state
       end
     else
       Logger.debug("#{@logprefix} A monitor already exists for cluster #{cluster["etcd_token"]}")
       state
-    end  
+    end
   end
 
   @doc """
@@ -154,7 +154,7 @@ defmodule OpenAperture.Overseer.Clusters.ClustersMonitor do
 
   state
   """
-  @spec stop_monitoring_clusters(Map, List) :: Map
+  @spec stop_monitoring_clusters(map, list) :: map
   def stop_monitoring_clusters(state, clusters \\ nil) do
     if clusters == nil do
       clusters = Map.keys(state[:clusters])

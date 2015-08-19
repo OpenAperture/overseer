@@ -13,7 +13,7 @@ defmodule OpenAperture.Overseer.Components.ComponentsMgr do
 
   @moduledoc """
   This module contains the GenServer for managing SystemComponents associated with the configured Exchange
-  """  
+  """
 
   @doc """
   Specific start_link implementation
@@ -22,7 +22,7 @@ defmodule OpenAperture.Overseer.Components.ComponentsMgr do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}  
+  @spec start_link() :: {:ok, pid} | {:error, String.t}
   def start_link() do
     Logger.debug("#{@logprefix} Starting...")
 
@@ -63,7 +63,7 @@ defmodule OpenAperture.Overseer.Components.ComponentsMgr do
 
   {:noreply, state}
   """
-  @spec handle_cast({:resolve_system_components}, Map) :: {:noreply, Map}
+  @spec handle_cast({:resolve_system_components}, map) :: {:noreply, map}
   def handle_cast({:resolve_system_components}, state) do
     state = resolve_system_components(state)
     :timer.sleep(300000)
@@ -72,7 +72,7 @@ defmodule OpenAperture.Overseer.Components.ComponentsMgr do
   end
 
   @doc """
-  Method for ensuring that a ComponentMgr exists for each type of Component assigned to 
+  Method for ensuring that a ComponentMgr exists for each type of Component assigned to
   the current exchange
 
   ## Options
@@ -83,7 +83,7 @@ defmodule OpenAperture.Overseer.Components.ComponentsMgr do
 
   Map, containing the updated state
   """
-  @spec resolve_system_components(Map) :: Map
+  @spec resolve_system_components(map) :: map
   def resolve_system_components(state) do
     exchange_id = Configuration.get_current_exchange_id
 
@@ -99,7 +99,7 @@ defmodule OpenAperture.Overseer.Components.ComponentsMgr do
         if updated_state[:managers][component["type"]] == nil do
           Logger.debug("#{@logprefix} There are #{length(components)} component(s) assigned to exchange #{exchange_id}")
           case ComponentMgr.start_link(component) do
-            {:error, reason} -> 
+            {:error, reason} ->
               Logger.error("#{@logprefix} Failed to start a ComponentMgr for component #{component["type"]} (#{component["id"]}):  #{inspect reason}")
             {:ok, mgr} ->
               managers = Map.put(updated_state[:managers], component["type"], mgr)

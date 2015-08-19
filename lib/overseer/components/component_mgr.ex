@@ -16,7 +16,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   @moduledoc """
   This module contains the GenServer for managing a specific SystemComponent and kicking off upgrades as needed
-  """  
+  """
 
   @doc """
   Specific start_link implementation
@@ -29,7 +29,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link(Map) :: {:ok, pid} | {:error, String.t()}  
+  @spec start_link(map) :: {:ok, pid} | {:error, String.t}
   def start_link(component) do
     Logger.debug("#{@logprefix}[#{component["type"]}] Starting...")
     case GenServer.start_link(__MODULE__, %{component: component, updated_at: Time.now()}) do
@@ -62,7 +62,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   Map containing the refreshed component
   """
-  @spec refresh(pid) :: Map 
+  @spec refresh(pid) :: map
   def refresh(mgr) do
     GenServer.call(mgr, {:refresh_component})
   end
@@ -78,7 +78,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   Map containing the cached component
   """
-  @spec component(pid) :: Map 
+  @spec component(pid) :: map
   def component(mgr) do
     GenServer.call(mgr, {:get_component})
   end
@@ -96,7 +96,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   Map containing the updated component
   """
-  @spec save(pid, Map) :: Map
+  @spec save(pid, map) :: map
   def save(mgr, updated_component) do
     GenServer.call(mgr, {:save, updated_component})
   end
@@ -112,7 +112,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   the upgrade / monitoring async Task
   """
-  @spec request_upgrade(pid) :: Task
+  @spec request_upgrade(pid) :: Task.t
   def request_upgrade(mgr) do
     GenServer.call(mgr, {:request_upgrade})
   end
@@ -128,7 +128,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   the upgrade / monitoring async Task
   """
-  @spec current_upgrade_task(pid) :: Task
+  @spec current_upgrade_task(pid) :: Task.t
   def current_upgrade_task(mgr) do
     GenServer.call(mgr, {:current_upgrade_task})
   end
@@ -139,12 +139,12 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
   ## Option Values
 
   The `mgr` option is the GenServer PID
-  
+
   ## Return Values
 
   the upgrade / monitoring async Task
   """
-  @spec set_task(pid, term, Task) :: Task
+  @spec set_task(pid, term, Task.t) :: Task.t
   def set_task(mgr, task_type, task) do
     GenServer.call(mgr, {:set_upgrade_task, task_type, task})
   end
@@ -162,7 +162,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   {:reply, component, state}
   """
-  @spec handle_call({:get_component}, pid, Map) :: {:reply, Map, Map} 
+  @spec handle_call({:get_component}, pid, map) :: {:reply, map, map}
   def handle_call({:get_component}, _from, state) do
     {:reply, state[:component], state}
   end
@@ -182,15 +182,15 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   {:reply, updated_component or original if save fails, state}
   """
-  @spec handle_call({:save, Map}, pid, Map) :: {:reply, Map, Map} 
+  @spec handle_call({:save, map}, pid, map) :: {:reply, map, map}
   def handle_call({:save, updated_component}, _from, state) do
-    response = SystemComponent.update_system_component(ManagerApi.get_api, updated_component["id"], updated_component) 
+    response = SystemComponent.update_system_component(ManagerApi.get_api, updated_component["id"], updated_component)
     if response.success? do
       Logger.debug("#{@logprefix}[#{updated_component["type"]}] Successfully saved updated_component #{updated_component["id"]}")
       state = Map.put(state, :component, updated_component)
       state = Map.put(state, :updated_at, Time.now())
-      {:reply, updated_component, state} 
-    else      
+      {:reply, updated_component, state}
+    else
       Logger.error("#{@logprefix}[#{updated_component["type"]}] Failed to save updated_component #{updated_component["id"]}:  #{inspect response}")
       {:reply, state[:component], state}
     end
@@ -209,15 +209,15 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   {:reply, updated component, state}
   """
-  @spec handle_call({:refresh_component}, pid, Map) :: {:reply, Map, Map} 
+  @spec handle_call({:refresh_component}, pid, map) :: {:reply, map, map}
   def handle_call({:refresh_component}, _from, state) do
     case SystemComponent.get_system_component!(ManagerApi.get_api, state[:component]["id"]) do
-      nil -> 
+      nil ->
         Logger.error("#{@logprefix}[#{state[:component]["type"]}] Failed to refresh component #{state[:component]["id"]}!")
       component ->
         Logger.debug("#{@logprefix}[#{component["type"]}] Successfully refreshed component #{component["id"]}")
         state = Map.put(state, :component, component)
-        state = Map.put(state, :updated_at, Time.now())      
+        state = Map.put(state, :updated_at, Time.now())
     end
 
     {:reply, state[:component], state}
@@ -236,7 +236,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   {:reply, Task, state}
   """
-  @spec handle_call({:request_upgrade}, pid, Map) :: {:reply, Task, Map}
+  @spec handle_call({:request_upgrade}, pid, map) :: {:reply, Task.t, map}
   def handle_call({:request_upgrade}, _from, state) do
 
     if state[:upgrade_task] != nil && !Process.alive?(state[:upgrade_task].pid) do
@@ -246,17 +246,17 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
     if state[:monitoring_task] != nil && !Process.alive?(state[:monitoring_task].pid) do
       Logger.debug("#{@logprefix}[#{state[:component]["type"]}] A zombie MonitoringTask has been found for #{state[:component]["id"]}; clearing saved MonitoringTask")
-      state = Map.put(state, :monitoring_task, nil)        
+      state = Map.put(state, :monitoring_task, nil)
     end
 
     task = cond do
-      state[:monitoring_task] != nil -> 
+      state[:monitoring_task] != nil ->
         Logger.debug("#{@logprefix}[#{state[:component]["type"]}] An upgrade has been requested for component #{state[:component]["id"]}; upgrade is currently being monitored.")
         state[:monitoring_task]
-      state[:upgrade_task] != nil -> 
+      state[:upgrade_task] != nil ->
         Logger.debug("#{@logprefix}[#{state[:component]["type"]}] An upgrade has been requested for component #{state[:component]["id"]}; upgrade is currently in-progress.")
         state[:upgrade_task]
-      true -> 
+      true ->
         Logger.debug("#{@logprefix}[#{state[:component]["type"]}] An upgrade has been requested for component #{state[:component]["id"]}; a new upgrade has been requested")
         UpgradeTask.create(self)
     end
@@ -275,9 +275,9 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   ## Return Values
 
-  {:reply, Task, state}
+  {:reply, task, state}
   """
-  @spec handle_call({:current_upgrade_task}, pid, Map) :: {:reply, Task, Map}
+  @spec handle_call({:current_upgrade_task}, pid, map) :: {:reply, Task.t, map}
   def handle_call({:current_upgrade_task}, _from, state) do
     task = cond do
       state[:monitoring_task] != nil -> state[:monitoring_task]
@@ -303,7 +303,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   {:reply, manager, state}
   """
-  @spec handle_call({:set_status_mgr, pid}, pid, Map) :: {:reply, pid, Map}
+  @spec handle_call({:set_status_mgr, pid}, pid, map) :: {:reply, pid, map}
   def handle_call({:set_status_mgr, mgr}, _from, state) do
     state = Map.put(state, :status_mgr, mgr)
     {:reply, mgr, state}
@@ -326,7 +326,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   {:reply, manager, state}
   """
-  @spec handle_call({:set_upgrade_task, term, Task}, pid, Map) :: {:reply, Task, Map}
+  @spec handle_call({:set_upgrade_task, term, Task.t}, pid, map) :: {:reply, Task.t, map}
   def handle_call({:set_upgrade_task, task_type, task}, _from, state) do
     state = Map.put(state, task_type, task)
     {:reply, task, state}
