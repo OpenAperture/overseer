@@ -23,7 +23,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link(Map) :: {:ok, pid} | {:error, String.t()}
+  @spec start_link(Map) :: {:ok, pid} | {:error, String.t}
   def start_link(cluster) do
     Logger.debug("#{@logprefix}[#{cluster["etcd_token"]}] Starting...")
     GenServer.start_link(__MODULE__, %{cluster: cluster, etcd_token: cluster["etcd_token"]})

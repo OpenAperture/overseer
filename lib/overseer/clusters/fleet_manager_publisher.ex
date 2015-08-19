@@ -25,7 +25,7 @@ defmodule OpenAperture.Overseer.FleetManagerPublisher do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link :: {:ok, pid} | {:error, String.t()}
+  @spec start_link :: {:ok, pid} | {:error, String.t}
   def start_link do
     Logger.debug("Starting FleetManagerPublisher...")
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
@@ -44,7 +44,7 @@ defmodule OpenAperture.Overseer.FleetManagerPublisher do
 
   RpcHandler pid
   """
-  @spec list_machines!(String.t(), term) :: pid
+  @spec list_machines!(String.t, term) :: pid
   def list_machines!(etcd_token, cluster_exchange_id) do
     request_body = %{
         etcd_token: etcd_token,
@@ -70,7 +70,7 @@ defmodule OpenAperture.Overseer.FleetManagerPublisher do
 
   RpcHandler pid
   """
-  @spec list_units!(String.t(), term) :: pid
+  @spec list_units!(String.t, term) :: pid
   def list_units!(etcd_token, cluster_exchange_id) do
     request_body = %{
         etcd_token: etcd_token,
@@ -96,7 +96,7 @@ defmodule OpenAperture.Overseer.FleetManagerPublisher do
 
   RpcHandler pid
   """
-  @spec list_unit_states!(String.t(), term) :: pid
+  @spec list_unit_states!(String.t, term) :: pid
   def list_unit_states!(etcd_token, cluster_exchange_id) do
     request_body = %{
         etcd_token: etcd_token,
@@ -124,7 +124,7 @@ defmodule OpenAperture.Overseer.FleetManagerPublisher do
 
   RpcHandler pid
   """
-  @spec unit_logs!(String.t(), term, String.t) :: pid
+  @spec unit_logs!(String.t, term, String.t) :: pid
   def unit_logs!(etcd_token, cluster_exchange_id, unit_name) do
     request_body = %{
         etcd_token: etcd_token,

@@ -21,7 +21,7 @@ defmodule OpenAperture.Overseer.Components.ComponentStatusMgr do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link(pid) :: {:ok, pid} | {:error, String.t()}
+  @spec start_link(pid) :: {:ok, pid} | {:error, String.t}
   def start_link(mgr) do
     case GenServer.start_link(__MODULE__, %{component_mgr: mgr}) do
       {:error, reason} -> {:error, reason}

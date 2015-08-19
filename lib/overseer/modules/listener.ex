@@ -30,7 +30,7 @@ defmodule OpenAperture.Overseer.Modules.Listener do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}
+  @spec start_link() :: {:ok, pid} | {:error, String.t}
   def start_link() do
     case GenServer.start_link(__MODULE__, %{}, []) do
       {:ok, listener} ->
@@ -81,7 +81,7 @@ defmodule OpenAperture.Overseer.Modules.Listener do
 
   The `delivery_tag` option is the unique identifier of the message
   """
-  @spec process_event(Map, String.t()) :: term
+  @spec process_event(Map, String.t) :: term
   def process_event(%{event_type: :status} = payload, _delivery_tag) do
     Logger.debug("Received a status event from module #{payload[:hostname]}")
 
@@ -115,7 +115,7 @@ defmodule OpenAperture.Overseer.Modules.Listener do
 
   The `delivery_tag` option is the unique identifier of the message
   """
-  @spec process_event(Map, String.t()) :: term
+  @spec process_event(Map, String.t) :: term
   def process_event(%{event_type: type} = _payload, _delivery_tag) do
     Logger.debug("[Listener] Received an unknown event:  #{inspect type}")
   end

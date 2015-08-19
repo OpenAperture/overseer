@@ -22,7 +22,7 @@ defmodule OpenAperture.Overseer.Modules.Retriever do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}
+  @spec start_link() :: {:ok, pid} | {:error, String.t}
   def start_link() do
     case GenServer.start_link(__MODULE__, [], name: __MODULE__) do
       {:ok, retriever} ->

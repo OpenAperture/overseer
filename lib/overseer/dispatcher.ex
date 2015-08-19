@@ -39,7 +39,7 @@ defmodule OpenAperture.Overseer.Dispatcher do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}
+  @spec start_link() :: {:ok, pid} | {:error, String.t}
   def start_link do
     case GenServer.start_link(__MODULE__, %{}, name: __MODULE__) do
     	{:error, reason} ->
@@ -71,7 +71,7 @@ defmodule OpenAperture.Overseer.Dispatcher do
 
   :ok | {:error, reason}
   """
-  @spec register_queues() :: :ok | {:error, String.t()}
+  @spec register_queues() :: :ok | {:error, String.t}
   def register_queues do
     Logger.debug("#{@logprefix} Registering #{Configuration.get_current_queue_name} queue...")
     overseer_queue = QueueBuilder.build(ManagerApi.get_api, Configuration.get_current_queue_name, Configuration.get_current_exchange_id)
@@ -148,7 +148,7 @@ defmodule OpenAperture.Overseer.Dispatcher do
 
   The `delivery_tag` option is the unique identifier of the message
   """
-  @spec process_request(:upgrade_request, Map, String.t()) :: term
+  @spec process_request(:upgrade_request, Map, String.t) :: term
   def process_request(:upgrade_request, options, delivery_tag) do
     Logger.debug("#{@logprefix} Processing an upgrade request for component #{options[:component_type]}...")
     mgr = ComponentsMgr.get_mgr_for_component_type(options[:component_type])
@@ -167,7 +167,7 @@ defmodule OpenAperture.Overseer.Dispatcher do
 
   The `delivery_tag` option is the unique identifier of the message
   """
-  @spec process_request(term, Map, String.t()) :: term
+  @spec process_request(term, Map, String.t) :: term
   def process_request(unknown_action, _options, delivery_tag) do
     Logger.error("#{@logprefix} Unable to process request with action #{unknown_action}!  This action is not currently supported")
     acknowledge(delivery_tag)
@@ -180,7 +180,7 @@ defmodule OpenAperture.Overseer.Dispatcher do
 
   The `delivery_tag` option is the unique identifier of the message
   """
-  @spec acknowledge(String.t()) :: term
+  @spec acknowledge(String.t) :: term
   def acknowledge(delivery_tag) do
     message = MessageManager.remove(delivery_tag)
     unless message == nil do
@@ -197,7 +197,7 @@ defmodule OpenAperture.Overseer.Dispatcher do
 
   The `redeliver` option can be used to requeue a message
   """
-  @spec reject(String.t(), term) :: term
+  @spec reject(String.t, term) :: term
   def reject(delivery_tag, redeliver \\ false) do
     message = MessageManager.remove(delivery_tag)
     unless message == nil do

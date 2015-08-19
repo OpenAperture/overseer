@@ -29,7 +29,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link(Map) :: {:ok, pid} | {:error, String.t()}
+  @spec start_link(Map) :: {:ok, pid} | {:error, String.t}
   def start_link(component) do
     Logger.debug("#{@logprefix}[#{component["type"]}] Starting...")
     case GenServer.start_link(__MODULE__, %{component: component, updated_at: Time.now()}) do
