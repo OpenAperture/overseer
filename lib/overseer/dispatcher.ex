@@ -148,7 +148,7 @@ defmodule OpenAperture.Overseer.Dispatcher do
 
   The `delivery_tag` option is the unique identifier of the message
   """
-  @spec process_request(:upgrade_request, Map, String.t) :: term
+  @spec process_request(:upgrade_request, map, String.t) :: term
   def process_request(:upgrade_request, options, delivery_tag) do
     Logger.debug("#{@logprefix} Processing an upgrade request for component #{options[:component_type]}...")
     mgr = ComponentsMgr.get_mgr_for_component_type(options[:component_type])
@@ -167,7 +167,7 @@ defmodule OpenAperture.Overseer.Dispatcher do
 
   The `delivery_tag` option is the unique identifier of the message
   """
-  @spec process_request(term, Map, String.t) :: term
+  @spec process_request(term, map, String.t) :: term
   def process_request(unknown_action, _options, delivery_tag) do
     Logger.error("#{@logprefix} Unable to process request with action #{unknown_action}!  This action is not currently supported")
     acknowledge(delivery_tag)
