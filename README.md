@@ -4,6 +4,10 @@
 
 The Overseer module provides a standardized mechanism to manage and monitor OpenAperture system modules running in various MessagingExchanges.
 
+## Contributing
+
+To contribute to OpenAperture development, view our [contributing guide](http://openaperture.io/dev_resources/contributing.html)
+
 ## Module Responsibilities
 
 The WorkflowOrchestrator module is responsible for the following actions within OpenAperture:
