@@ -61,7 +61,7 @@ defmodule OpenAperture.Overseer.Components.ComponentsMgr do
   GenServer callback for handling the :resolve_system_components event.  This method
   will retrieve the assigned component list every 5 minutes
 
-  {:noreply, state}
+      {:noreply, state}
   """
   @spec handle_cast({:resolve_system_components}, map) :: {:noreply, map}
   def handle_cast({:resolve_system_components}, state) do

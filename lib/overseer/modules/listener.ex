@@ -46,7 +46,7 @@ defmodule OpenAperture.Overseer.Modules.Listener do
   GenServer callback for handling the :start_listening event.  This method
   starts listener (i.e. subscribes) to events coming from the MessagingExchangeModule
 
-  {:noreply, state}
+      {:noreply, state}
   """
   @spec handle_cast({:start_listening}, map) :: {:noreply, map}
   def handle_cast({:start_listening}, state) do

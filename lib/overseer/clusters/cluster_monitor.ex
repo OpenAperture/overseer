@@ -54,7 +54,7 @@ defmodule OpenAperture.Overseer.Clusters.ClusterMonitor do
 
   ## Return Values
 
-  {:noreply, state}
+      {:noreply, state}
   """
   @spec handle_cast({:monitor}, map) :: {:noreply, map}
   def handle_cast({:monitor}, state) do

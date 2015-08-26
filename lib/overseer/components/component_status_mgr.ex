@@ -40,7 +40,7 @@ defmodule OpenAperture.Overseer.Components.ComponentStatusMgr do
 
   ## Return Values
 
-  {:noreply, state}
+      {:noreply, state}
   """
   @spec handle_cast({:check_for_upgrade}, map) :: {:noreply, map}
   def handle_cast({:check_for_upgrade}, state) do

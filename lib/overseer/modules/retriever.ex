@@ -39,7 +39,7 @@ defmodule OpenAperture.Overseer.Modules.Retriever do
   GenServer callback for handling the :retrieve_module_list event.  This method
   will retrieve MessagingExchangeModules for the configured messaging exchange.
 
-  {:noreply, new modules list}
+      {:noreply, new modules list}
   """
   @spec handle_cast({:retrieve_module_list}, term) :: {:noreply, list}
   def handle_cast({:retrieve_module_list}, _state) do

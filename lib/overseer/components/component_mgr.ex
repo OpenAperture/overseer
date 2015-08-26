@@ -301,7 +301,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   ## Return Values
 
-  {:reply, manager, state}
+      {:reply, manager, state}
   """
   @spec handle_call({:set_status_mgr, pid}, pid, map) :: {:reply, pid, map}
   def handle_call({:set_status_mgr, mgr}, _from, state) do
@@ -324,7 +324,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
 
   ## Return Values
 
-  {:reply, manager, state}
+      {:reply, manager, state}
   """
   @spec handle_call({:set_upgrade_task, term, Task.t}, pid, map) :: {:reply, Task.t, map}
   def handle_call({:set_upgrade_task, task_type, task}, _from, state) do

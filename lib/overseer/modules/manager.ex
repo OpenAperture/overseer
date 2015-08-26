@@ -42,7 +42,7 @@ defmodule OpenAperture.Overseer.Modules.Manager do
   GenServer callback for handling the :set_modules event.  This method
   will update the module list and stop/start listeners are needed
 
-  {:noreply, state}
+      {:noreply, state}
   """
   @spec handle_cast(pid, term) :: {:noreply, map}
   def handle_cast({:set_modules, modules}, state) do
