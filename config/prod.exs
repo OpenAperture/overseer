@@ -15,6 +15,8 @@ use Mix.Config
 #       format: "$date $time [$level] $metadata$message\n",
 #       metadata: [:user_id]
 
+config :logger, level: :warn
+
 config :openaperture_manager_api, 
 	manager_url: System.get_env("MANAGER_URL"),
 	oauth_login_url: System.get_env("OAUTH_LOGIN_URL"),
