@@ -26,7 +26,7 @@ defmodule OpenAperture.Overseer.Components.ComponentsMgr do
   def start_link() do
     Logger.debug("#{@logprefix} Starting...")
 
-    case Agent.start_link(fn -> %{} end, name: :ComponentMgrStore) do
+    case ensure_mgr_store_started do
       {:error, reason} -> {:error, reason}
       {:ok, _} ->
         case GenServer.start_link(__MODULE__, %{managers: %{}}, name: __MODULE__) do
@@ -38,6 +38,25 @@ defmodule OpenAperture.Overseer.Components.ComponentsMgr do
             {:ok, pid}
           {:error, reason} -> {:error, reason}
         end
+    end
+  end
+
+  defp ensure_mgr_store_started do
+    store = Process.whereis(:ComponentMgrStore)
+    if store == nil || !Process.alive?(store) do
+      case Agent.start_link(fn -> %{} end, name: :ComponentMgrStore) do
+        {:error, {:already_started, existing_store}} -> 
+          Logger.debug("#{@logprefix} :ComponentMgrStore is already running")
+          {:ok, existing_store}
+        {:error, reason} -> 
+          Logger.error("#{@logprefix} Failed to start :ComponentMgrStore!")
+          {:error, reason}
+        {:ok, new_store} -> 
+          Logger.debug("#{@logprefix} Successfully started :ComponentMgrStore")
+          {:ok, new_store}
+      end      
+    else
+      {:ok, store}
     end
   end
 
@@ -54,6 +73,7 @@ defmodule OpenAperture.Overseer.Components.ComponentsMgr do
   """
   @spec get_mgr_for_component_type(String.t) :: pid
   def get_mgr_for_component_type(type) do
+    ensure_mgr_store_started
     Agent.get(:ComponentMgrStore, fn store -> store end)[type]
   end
 
@@ -85,6 +105,7 @@ defmodule OpenAperture.Overseer.Components.ComponentsMgr do
   """
   @spec resolve_system_components(map) :: map
   def resolve_system_components(state) do
+    ensure_mgr_store_started
     exchange_id = Configuration.get_current_exchange_id
 
     components = MessagingExchange.exchange_components!(ManagerApi.get_api, exchange_id)
