@@ -239,7 +239,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
   @spec handle_call({:request_upgrade}, pid, map) :: {:reply, Task.t, map}
   def handle_call({:request_upgrade}, _from, state) do
 
-    if state[:upgrade_task] != nil && !Process.alive?(state[:upgrade_task].pid) do
+    if state[:upgrade_task] != nil && (state[:upgrade_task].pid == nil || !Process.alive?(state[:upgrade_task].pid)) do
       Logger.debug("#{@logprefix}[#{state[:component]["type"]}] A zombie UpgradeTask has been found for #{state[:component]["id"]}; clearing saved UpgradeTask")
       state = Map.put(state, :upgrade_task, nil)
     end
