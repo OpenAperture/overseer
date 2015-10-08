@@ -244,7 +244,7 @@ defmodule OpenAperture.Overseer.Components.ComponentMgr do
       state = Map.put(state, :upgrade_task, nil)
     end
 
-    if state[:monitoring_task] != nil && !Process.alive?(state[:monitoring_task].pid) do
+    if state[:monitoring_task] != nil && (state[:monitoring_task].pid == nil || !Process.alive?(state[:monitoring_task].pid)) do
       Logger.debug("#{@logprefix}[#{state[:component]["type"]}] A zombie MonitoringTask has been found for #{state[:component]["id"]}; clearing saved MonitoringTask")
       state = Map.put(state, :monitoring_task, nil)
     end
